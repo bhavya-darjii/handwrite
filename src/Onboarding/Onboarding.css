@@ -1,0 +1,519 @@
+/* Reset white borders - Full viewport coverage */
+html,
+body,
+#root {
+  margin: 0;
+  padding: 0;
+  border: none;
+  height: 100vh; /* Full height to kill white space */
+  width: 100vw; /* Full width */
+  overflow: hidden; /* Completely disable scrolling and hide scrollbar */
+  box-sizing: border-box;
+}
+
+/* Hide scrollbar globally for all browsers */
+::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Edge */
+}
+
+* {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+/* Page */
+.page {
+  height: 100vh;
+  background-color: #000;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Inter", "Poppins", sans-serif;
+  overflow: hidden; /* Ensure no scrolling */
+  position: relative;
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Aurora */
+.aurora-wrapper {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.aurora-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(1px);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Content */
+.center-wrapper {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  width: 100%;
+  max-width: 400px;
+  padding: 0 1rem;
+  box-sizing: border-box;
+}
+
+.subtitle {
+  font-size: 0.9rem;
+  letter-spacing: 3px;
+  color: rgba(255, 255, 255, 0.4);
+  text-transform: uppercase;
+}
+
+.title {
+  font-size: 2.4rem;
+  font-weight: 600;
+  line-height: 1.3;
+  color: #eee;
+}
+
+.highlight {
+  background: linear-gradient(90deg, #ffde59, #ffd000, #ffcc00);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.form-box {
+  width: 100%;
+  max-width: 380px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  margin-top: 0.5rem;
+  box-sizing: border-box;
+}
+
+.form-box input {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #fff;
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 0.95rem;
+  outline: none;
+  transition: border 0.2s;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.form-box input:-webkit-autofill,
+.form-box input:-webkit-autofill:hover,
+.form-box input:-webkit-autofill:focus,
+.form-box input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px rgba(255, 255, 255, 0.06) inset !important;
+  -webkit-text-fill-color: #fff !important;
+  transition: background-color 5000s ease-in-out 0s !important;
+}
+
+/* .form-box input:focus {
+  border-color: #ffde59;
+} */
+
+.form-box button {
+  background: #ffcc00;
+  border: none;
+  border-radius: 10px;
+  padding: 12px 14px;
+  color: #000;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: transform 0.2s, background 0.2s;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.form-box button:hover {
+  background: #ffcc00;
+  transform: scale(1.03);
+}
+
+.footer-text {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.4);
+  text-align: center;
+}
+
+.footer-text a {
+  color: #ffcc00;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* ——————— HANDWRITE SUCCESS MODAL (CLEAN) ——————— */
+.handwrite-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 1rem;
+  box-sizing: border-box;
+}
+
+.handwrite-modal {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+}
+
+.handwrite-content {
+  background: #111;
+  border-radius: 24px;
+  padding: 2rem 2rem 1rem; /* Reduced bottom padding */
+  text-align: center;
+  color: #fff;
+  position: relative;
+  box-sizing: border-box;
+}
+
+.handwrite-checkmark {
+  margin-bottom: 1.5rem;
+}
+
+.handwrite-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem;
+  line-height: 1.3;
+}
+
+.handwrite-subtitle {
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0 0 1.5rem;
+}
+
+.handwrite-email-card {
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 16px;
+  padding: 1rem;
+  margin-bottom: 0.5rem; /* Reduced margin-bottom */
+  text-align: left;
+  font-size: 0.9rem;
+  box-sizing: border-box;
+}
+
+/* Header Box - Same color as popup background (#111) with subtle border */
+.email-header-box {
+  background: #111;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.75rem;
+  box-sizing: border-box;
+}
+
+.email-header {
+  display: flex;
+  align-items: center; /* Vertical center alignment */
+  gap: 0.5rem;
+  font-weight: 500;
+  flex-wrap: nowrap;
+}
+
+.email-icon {
+  flex-shrink: 0;
+  color: rgba(255, 255, 255, 0.6);
+  display: flex;
+  align-items: center; /* Extra: Center SVG vertically in its span */
+  height: 16px; /* Match SVG height for perfect alignment */
+}
+
+.email-icon svg {
+  width: 16px;
+  height: 16px;
+  vertical-align: middle; /* Baseline alignment for SVG */
+}
+
+.email-address {
+  flex: 1;
+  color: #fff;
+  font-size: 0.85rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 1.2; /* Tighter line-height for alignment */
+}
+
+.email-number {
+  color: #00ff88;
+  font-weight: 600;
+  font-size: 0.65rem; /* Match email-address size for even line */
+  flex-shrink: 0;
+  white-space: nowrap;
+  line-height: 1.2; /* Match line-height */
+}
+
+.email-footer {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+.perks-list {
+  margin: 0.5rem 0 0 0;
+  padding-left: 1rem;
+  text-align: left;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.85rem;
+  list-style-type: disc;
+}
+
+.perks-list li {
+  margin-bottom: 0.5rem;
+  line-height: 1.4;
+}
+
+/* Perks Button - Similar design to close button */
+.perks-button {
+  display: inline-block;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.08),
+    rgba(255, 255, 255, 0.02)
+  );
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 12px 24px;
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.7rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(4px);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 1rem;
+  margin-top: 10px;
+}
+
+.perks-button:hover {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.15),
+    rgba(255, 255, 255, 0.05)
+  );
+  transform: scale(1.05);
+}
+
+/* Close Button with Faint White Gradient */
+.handwrite-close {
+  position: absolute;
+  top: 0.75rem; /* Slightly adjusted for mobile */
+  right: 0.75rem;
+  width: 32px; /* Smaller on mobile */
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.08),
+    rgba(255, 255, 255, 0.02)
+  );
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(4px);
+}
+
+.handwrite-close:hover {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.15),
+    rgba(255, 255, 255, 0.05)
+  );
+  transform: scale(1.05);
+}
+
+/* Error Pill - Liquid Glass Effect */
+.error-pill {
+  background: rgba(255, 107, 107, 0.1); /* Semi-transparent red for glass */
+  border: 1px solid rgba(255, 107, 107, 0.3); /* Subtle red border */
+  border-radius: 25px; /* Pill shape */
+  padding: 0.5rem 1rem;
+  color: #ff6b6b; /* Red text */
+  font-size: 0.85rem;
+  margin: 0 0 1rem;
+  backdrop-filter: blur(10px); /* Glass blur effect */
+  box-sizing: border-box;
+  text-align: center;
+  width: 100%;
+  max-width: 380px; /* Match form width */
+}
+
+.close-inner {
+  font-size: 1.4rem; /* Slightly smaller on mobile */
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 300;
+  line-height: 1;
+}
+
+
+/* Mobile Responsiveness - Enhanced for no white space & smaller widths */
+@media (max-width: 480px) {
+  html,
+  body,
+  #root {
+    margin: 0;
+    padding: 0;
+    width: 100vw;
+    height: 100dvh;
+    overflow: hidden;
+    background: #000; /* fallback color while Aurora loads */
+    box-sizing: border-box;
+  }
+
+  .page {
+    position: relative;
+    width: 100vw;
+    height: 100dvh;
+    min-height: -webkit-fill-available;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: "Inter", "Poppins", sans-serif;
+    color: #fff;
+    background: transparent; /* this is important – allows Aurora to show */
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    box-sizing: border-box;
+  }
+
+  .center-wrapper {
+    gap: 1rem;
+    padding: 0; /* Increased right/left margins for form */
+    max-width: 85%; /* Smaller width for form elements */
+  }
+
+  .title {
+    font-size: 1.8rem;
+    line-height: 1.2;
+  }
+
+  .subtitle {
+    font-size: 0.8rem;
+    letter-spacing: 2px;
+  }
+
+  .form-box {
+    max-width: 85%; /* Smaller width on mobile */
+    gap: 0.75rem;
+    width: 100%;
+  }
+
+  .form-box input,
+  .form-box button {
+    padding: 14px 16px;
+    font-size: 1rem;
+    width: 100%;
+    max-width: 100%; /* Ensure no overflow */
+  }
+
+  .footer-text {
+    font-size: 0.8rem;
+    padding: 0 1.5rem;
+    width: 85%;
+  }
+
+  .handwrite-modal-backdrop {
+    padding: 1.5rem; /* Right/left margins for popup */
+    align-items: center; /* Center aligned like before */
+    padding-top: env(safe-area-inset-top); /* iOS safe area */
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .handwrite-modal {
+    width: 100%;
+    max-width: 90%; /* Smaller popup width */
+  }
+
+  .handwrite-content {
+    padding: 1.5rem 1.25rem 0.75rem; /* Reduced bottom padding on mobile */
+    border-radius: 20px;
+  }
+
+  .handwrite-title {
+    font-size: 1.3rem;
+  }
+
+  .handwrite-subtitle {
+    font-size: 0.9rem;
+  }
+
+  .handwrite-email-card {
+    padding: 0.75rem;
+    margin-bottom: 0.25rem; /* Further reduced margin-bottom on mobile */
+  }
+
+  .email-header-box {
+    padding: 0.5rem 0.75rem;
+  }
+
+  .email-address {
+    font-size: 0.8rem; /* Larger email font on your phone */
+  }
+
+  .email-number {
+    font-size: 0.7;
+  }
+  .email-icon svg {
+    width: 16px; /* Larger icon on your phone */
+    height: 16px;
+  }
+
+  .email-footer {
+    font-size: 0.75rem;
+  }
+
+  .perks-list {
+    padding-left: 1.25rem;
+    font-size: 0.8rem;
+  }
+
+  .perks-list li {
+    margin-bottom: 0.4rem;
+  }
+
+  .perks-button {
+    padding: 10px 20px;
+    font-size: 0.60rem;
+    margin-bottom: 0.80rem;
+    margin-top: 10px;
+  }
+
+  .handwrite-close {
+    top: 0.5rem;
+    right: 0.5rem;
+    width: 32px;
+    height: 32px;
+  }
+
+  .close-inner {
+    font-size: 1.4rem;
+  }
+}

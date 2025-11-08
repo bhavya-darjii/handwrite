@@ -1,0 +1,79 @@
+/* Loading Page/Loading.css */
+
+/* Import or extend existing styles - assume these classes are from your main CSS */
+.loading-page {
+  /* Matches .page from your main CSS */
+  height: 100vh;
+  background-color: #000;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Inter", "Poppins", sans-serif;
+  overflow: hidden;
+  position: relative;
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Aurora wrapper and overlay - Match your existing styles */
+.loading-page .aurora-wrapper,
+.loading-page .aurora-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.loading-page .aurora-overlay {
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(1px);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Center wrapper - Match your existing styles */
+.loading-page .center-wrapper {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  width: 100%;
+  max-width: 400px;
+  padding: 0 1rem;
+  box-sizing: border-box;
+}
+
+/* Loading Pill - Liquid Glass Effect (transparent/neutral theme) */
+.loading-pill {
+  background: rgba(255, 255, 255, 0.05); /* Semi-transparent white for neutral glass */
+  border: 1px solid rgba(255, 255, 255, 0.2); /* Subtle white border */
+  border-radius: 25px; /* Pill shape */
+  padding: 0.75rem 1.5rem; /* Slightly larger padding for "Loading..." */
+  color: rgba(255, 255, 255, 0.8); /* Neutral white text */
+  font-size: 5rem; /* Readable size */
+  margin: 0 0 1rem;
+  backdrop-filter: blur(10px); /* Glass blur effect */
+  box-sizing: border-box;
+  text-align: center;
+  width: 100%;
+  max-width: 380px; /* Match form width */
+  font-weight: 500; /* Medium weight for clarity */
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 480px) {
+  .loading-page .center-wrapper {
+    gap: 1rem;
+    padding: 0;
+    max-width: 85%;
+  }
+
+  .loading-pill {
+    font-size: 2rem;
+    padding: 0.65rem 1.25rem;
+  }
+}
