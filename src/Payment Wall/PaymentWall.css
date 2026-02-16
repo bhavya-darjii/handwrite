@@ -1,51 +1,65 @@
-/* PaymentWall.css */
+/* ========================================= */
+/* PaymentWall.css - SCROLL FIXED            */
+/* ========================================= */
 
-/* Reset white borders - Full viewport coverage */
-html,
-body,
-#root {
+/* Page Container */
+.payment-wall-page {
   margin: 0;
   padding: 0;
-  border: none;
-  min-height: 100dvh;
-  width: 100vw;
-  overflow-x: hidden; /* CRUCIAL FIX: Prevents horizontal scrolling everywhere */
-  overflow-y: hidden; /* Locks the background scroll */
-  box-sizing: border-box;
-  background: #000;
-}
-
-/* Page - The main container that houses both fixed background and scrollable content */
-.page {
-  /* CRUCIAL: Set fixed height to full viewport and prevent its own scrolling */
-  height: 100dvh;
-  width: 100vw;
-  background-color: transparent;
-  color: #fff;
+  min-height: 100vh;
+  width: 100%;
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  /* Changed to center for fixed background aesthetic */
-  justify-content: center; 
-  font-family: "Inter", "Poppins", sans-serif;
-  overflow: hidden; /* CRUCIAL: Prevent the page itself from scrolling */
-  position: relative;
+  justify-content: flex-start; /* Keeps content at top */
+
+  /* Added this line to prevent vertical jitter */
+  scroll-behavior: auto !important;
+
+  padding-top: max(env(safe-area-inset-top), 2rem);
+  padding-bottom: max(env(safe-area-inset-bottom), 2rem);
   box-sizing: border-box;
-  padding-top: env(safe-area-inset-top);
-  padding-bottom: env(safe-area-inset-bottom);
+  color: #fff;
+  background: #000;
+  font-family: "Inter", "Poppins", sans-serif;
+  overflow-x: hidden;
 }
 
+/* Custom Scrollbar for this page (optional) */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #000;
+}
+::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 4px;
+}
 
-/* Aurora - Stays fixed behind the non-scrolling .page container */
-.aurora-wrapper {
-  position: absolute;
+/* Aurora Backgrounds */
+.payment-wall-aurora-wrapper {
+  position: fixed;
   inset: 0;
   z-index: 0;
   overflow: hidden;
+  pointer-events: none;
 }
 
-.aurora-overlay {
-  position: absolute;
+.payment-wall-aurora-container {
+  width: 100%;
+  height: 100%;
+  /* Optional: Add a gradient or image here if you have one */
+  background: radial-gradient(
+    circle at 50% 10%,
+    rgba(100, 108, 255, 0.15),
+    transparent 60%
+  );
+}
+
+.payment-wall-aurora-overlay {
+  position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(1px);
@@ -53,438 +67,313 @@ body,
   z-index: 1;
 }
 
-/* Content Wrapper - This is now the isolated scrolling area */
-.center-wrapper {
+/* Content Wrapper */
+.payment-wall-center-wrapper {
   position: relative;
-  z-index: 2;
-  text-align: center;
+  width: 100%;
+  max-width: 1100px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2rem;
-  width: 100%;
-  max-width: 100%;
-  
-  /* CRUCIAL: Isolate scroll to this element */
-  max-height: 100%; /* Take up max available height inside .page */
-  overflow-y: auto; /* Allow content to scroll */
-  
-  /* Desktop padding: Use larger vertical padding to ensure scrollability when content is short */
-  padding: 2rem 26rem; 
-  box-sizing: border-box;
+  gap: 1.5rem;
+  text-align: center;
+  z-index: 2;
+  padding: 0 1rem;
+  margin-top: 20px;
 }
 
-
-.subtitle {
+/* Typography */
+.payment-wall-subtitle {
   font-size: 0.9rem;
   letter-spacing: 3px;
   color: rgba(255, 255, 255, 0.4);
   text-transform: uppercase;
+  margin: 0;
 }
 
-.title {
-  font-size: 2.4rem;
-  font-weight: 600;
-  line-height: 1.3;
+.payment-wall-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  line-height: 1.2;
   color: #eee;
+  margin: 0;
 }
 
-.highlight {
+.payment-wall-highlight {
   background: linear-gradient(90deg, #ffde59, #ffd000, #ffcc00);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
 }
 
-/* Payment Info Container */
-.payment-info {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+/* Info Pill */
+.payment-wall-info-pill {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 8px 16px;
   border-radius: 20px;
-  padding: 2rem;
-  width: 100%;
-  box-sizing: border-box;
-  backdrop-filter: blur(10px);
-}
-
-/* Price Box */
-.price-box {
-  text-align: center;
-  margin-bottom: 2rem;
-}
-
-.price {
-  font-size: 3rem;
-  font-weight: 600;
-  color: #ffcc00;
-  margin: 0;
-  line-height: 1;
-}
-
-.price-period {
-  font-size: 1rem;
-  color: rgba(255, 255, 255, 0.7);
-  margin: 0.5rem 0 0;
-}
-
-/* Benefits List */
-.benefits-list {
-  list-style: none;
-  padding: 0;
-  margin: 0 0 2rem 0;
-  text-align: left;
-}
-
-.benefits-list li {
-  font-size: 0.95rem;
-  color: rgba(255, 255, 255, 0.9);
-  margin-bottom: 1rem;
-  padding-left: 1.5rem;
-  position: relative;
-  line-height: 1.4;
-}
-
-.benefits-list li::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0.2rem;
-  width: 8px;
-  height: 8px;
-  background: #ffcc00;
-  border-radius: 50%;
-}
-
-/* Subscribe Button */
-.subscribe-button {
-  background: linear-gradient(135deg, #ffcc00, #ffd000);
-  border: none;
-  border-radius: 12px;
-  padding: 1rem 2rem;
-  color: #000;
-  font-weight: 600;
-  font-size: 1.1rem;
-  cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.subscribe-button:hover {
-  transform: scale(1.02);
-}
-
-.subscribe-button:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
-  transform: none;
-}
-
-.footer-text {
-  font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.4);
-  text-align: center;
-}
-
-.footer-text a {
-  color: #ffcc00;
-  text-decoration: underline;
-  cursor: pointer;
-}
-
-/* ——————— HANDWRITE SUCCESS MODAL (CLEAN) ——————— */
-.handwrite-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(8px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 100;
-  padding: 1rem;
-  box-sizing: border-box;
-}
-
-.handwrite-modal {
-  position: relative;
-  width: 100%;
-  max-width: 420px;
-}
-
-.handwrite-content {
-  background: #111;
-  border-radius: 24px;
-  padding: 2rem 2rem 1rem;
-  text-align: center;
-  color: #fff;
-  position: relative;
-  box-sizing: border-box;
-}
-
-.handwrite-checkmark {
-  margin-bottom: 1.5rem;
-}
-
-.handwrite-title {
-  font-size: 1.5rem;
-  font-weight: 600;
-  margin: 0 0 0.5rem;
-  line-height: 1.3;
-}
-
-.handwrite-subtitle {
-  font-size: 0.95rem;
-  color: rgba(255, 255, 255, 0.7);
-  margin: 0 0 1.5rem;
-}
-
-.handwrite-email-card {
-  background: rgba(255, 255, 255, 0.06);
-  border-radius: 16px;
-  padding: 1rem;
-  margin-bottom: 0.5rem;
-  text-align: left;
   font-size: 0.9rem;
-  box-sizing: border-box;
-}
-
-/* Header Box - Same color as popup background (#111) with subtle border */
-.email-header-box {
-  background: #111;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 12px;
-  padding: 0.75rem 1rem;
-  margin-bottom: 0.75rem;
-  box-sizing: border-box;
-}
-
-.email-header {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
   font-weight: 500;
-  flex-wrap: nowrap;
-}
-
-.email-icon {
-  flex-shrink: 0;
-  color: rgba(255, 255, 255, 0.6);
-  display: flex;
-  align-items: center;
-  height: 16px;
-}
-
-.email-icon svg {
-  width: 16px;
-  height: 16px;
-  vertical-align: middle;
-}
-
-.email-address {
-  flex: 1;
   color: #fff;
-  font-size: 0.85rem;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  line-height: 1.2;
-}
-
-.email-number {
-  color: #00ff88;
-  font-weight: 600;
-  font-size: 0.65rem;
-  flex-shrink: 0;
-  white-space: nowrap;
-  line-height: 1.2;
-}
-
-.email-footer {
-  margin: 0;
-  color: rgba(255, 255, 255, 0.6);
-  font-size: 0.8rem;
-  text-align: center;
-}
-
-.perks-list {
-  margin: 0.5rem 0 0 0;
-  padding-left: 1rem;
-  text-align: left;
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 0.85rem;
-  list-style-type: disc;
-}
-
-.perks-list li {
-  margin-bottom: 0.5rem;
-  line-height: 1.4;
-}
-
-/* Perks Button - Similar design to close button */
-.perks-button {
-  display: inline-block;
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.08),
-    rgba(255, 255, 255, 0.02)
-  );
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 20px;
-  padding: 12px 24px;
-  color: #fff;
-  font-weight: 600;
-  font-size: 0.7rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
   backdrop-filter: blur(4px);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  margin-bottom: 1rem;
   margin-top: 10px;
 }
 
-.perks-button:hover {
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.15),
-    rgba(255, 255, 255, 0.05)
-  );
-  transform: scale(1.05);
+/* Rollover Text */
+.payment-wall-rollover-box {
+  margin-top: 0.5rem;
+  margin-bottom: 1rem;
+  padding: 0 2rem;
+  max-width: 600px;
 }
 
-/* Close Button with Faint White Gradient */
-.handwrite-close {
-  position: absolute;
-  top: 0.75rem;
-  right: 0.75rem;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.08),
-    rgba(255, 255, 255, 0.02)
-  );
-  border: 1px solid rgba(255, 255, 255, 0.1);
+.payment-wall-rollover-text {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.6);
+  line-height: 1.6;
+  text-align: center;
+}
+
+.payment-wall-rollover-text strong {
+  color: #ffcc00;
+}
+
+/* CARDS CONTAINER */
+.payment-wall-cards-container {
   display: flex;
-  align-items: center;
+  flex-direction: row;
   justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  backdrop-filter: blur(4px);
+  align-items: stretch; /* Makes all cards same height */
+  gap: 24px;
+  width: 100%;
+  margin-top: 1rem;
+  flex-wrap: wrap;
+  padding-bottom: 2rem; /* Space for shadow/hover effects */
 }
 
-.handwrite-close:hover {
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.15),
-    rgba(255, 255, 255, 0.05)
-  );
+/* INDIVIDUAL CARD */
+.payment-wall-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  padding: 2rem;
+  width: 300px;
+  box-sizing: border-box;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.3s ease, border-color 0.3s ease;
+}
+
+.payment-wall-card:hover {
+  transform: translateY(-8px);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Recommended Card */
+.payment-wall-card-recommended {
+  border: 1px solid rgba(255, 204, 0, 0.4);
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
   transform: scale(1.05);
+  z-index: 2;
 }
 
-.close-inner {
-  font-size: 1.4rem;
+.payment-wall-card-recommended:hover {
+  transform: scale(1.05) translateY(-8px);
+}
+
+.payment-wall-badge {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #ffcc00;
+  color: #000;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 6px 16px;
+  border-radius: 20px;
+  text-transform: uppercase;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  white-space: nowrap;
+}
+
+/* Card Internal Content */
+.payment-wall-card-header {
+  text-align: center;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 1rem;
+}
+
+.payment-wall-plan-label {
+  font-size: 1rem;
   color: rgba(255, 255, 255, 0.7);
-  font-weight: 300;
+  text-transform: uppercase;
+  margin: 0 0 0.5rem 0;
+  letter-spacing: 1.5px;
+  font-weight: 600;
+}
+
+.payment-wall-price-row {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  color: #ffcc00;
+}
+
+.payment-wall-currency {
+  font-size: 1.5rem;
+  margin-top: 8px;
+  margin-right: 4px;
+}
+
+.payment-wall-amount {
+  font-size: 3.5rem;
+  font-weight: 700;
   line-height: 1;
 }
 
-/* Mobile Responsiveness - Enhanced for no white space, fixed background, and smaller fonts */
-@media (max-width: 480px) {
-  html,
-  body,
-  #root {
-    margin: 0;
-    padding: 0;
-    width: 100vw;
-    height: 100dvh;
-    overflow-x: hidden; /* FIX: Double check this here */
-    overflow-y: hidden;
-    background: #000;
-    box-sizing: border-box;
-  }
-
-  .page {
-    position: relative;
-    width: 100vw;
-    height: 100dvh;
-    min-height: -webkit-fill-available;
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: "Inter", "Poppins", sans-serif;
-    color: #fff;
-    background: transparent;
-    padding-top: env(safe-area-inset-top);
-    padding-bottom: env(safe-area-inset-bottom);
-    box-sizing: border-box;
-  }
-
-  .center-wrapper {
-    gap: 1rem;
-    padding: 0;
-    max-width: 95%; /* Increased for wider scrollable area */
-    width: 100%;
-    
-    max-height: 100%; 
-    overflow-y: auto; 
-    
-    /* Internal padding for scrollable area */
-    padding-top: 1.5rem; 
-    padding-bottom: 1.5rem;
-    padding-left: 0.5rem; /* Small left/right padding for aesthetic */
-    padding-right: 0.5rem;
-  }
-
-  .title {
-    font-size: 1.6rem; /* REDUCED FONT SIZE */
-    line-height: 1.2;
-  }
-
-  .subtitle {
-    font-size: 0.75rem; /* REDUCED FONT SIZE */
-    letter-spacing: 2px;
-  }
-
-  .payment-info {
-    padding: 1.5rem; /* Reduced padding on card */
-  }
-
-  .price {
-    font-size: 2.5rem; /* REDUCED FONT SIZE */
-  }
-  
-  .price-period {
-    font-size: 0.9rem; /* REDUCED FONT SIZE */
-  }
-
-  .benefits-list li {
-    font-size: 0.85rem; /* REDUCED FONT SIZE */
-    margin-bottom: 0.75rem;
-  }
-  
-  .subscribe-button {
-    padding: 0.9rem 1.5rem; /* REDUCED BUTTON SIZE */
-    font-size: 1rem; /* REDUCED FONT SIZE */
-    border-radius: 10px;
-  }
-
-  .footer-text {
-    font-size: 0.75rem; /* REDUCED FONT SIZE */
-    padding: 0;
-    width: 100%;
-  }
-  
-  /* Modal Adjustments (Also reduced) */
-  .handwrite-title {
-    font-size: 1.2rem; /* REDUCED FONT SIZE */
-  }
-
-  .handwrite-subtitle {
-    font-size: 0.85rem; /* REDUCED FONT SIZE */
-  }
+.payment-wall-credits-info {
+  margin-top: 0.5rem;
+  font-size: 1rem;
+  color: #fff;
+  font-weight: 500;
 }
 
+/* List */
+.payment-wall-benefits-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 auto 0; /* Pushes button to bottom */
+  text-align: left;
+}
+
+.payment-wall-benefits-list li {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 1rem;
+  padding-left: 1.8rem;
+  position: relative;
+  line-height: 1.4;
+}
+
+.payment-wall-benefits-list li::before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: #ffcc00;
+  font-weight: bold;
+  font-size: 1.1em;
+}
+
+/* Buttons */
+.payment-wall-subscribe-button {
+  border: 1px solid transparent;
+  border-radius: 12px;
+  padding: 1rem;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  width: 100%;
+  margin-top: 2rem;
+  text-transform: uppercase;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  transition: all 0.2s;
+}
+
+.payment-wall-subscribe-button:hover {
+  background: #fff;
+  color: #000;
+}
+
+.payment-wall-card-recommended .payment-wall-subscribe-button {
+  background: #ffcc00;
+  color: #000;
+  box-shadow: 0 4px 15px rgba(255, 204, 0, 0.3);
+}
+
+.payment-wall-card-recommended .payment-wall-subscribe-button:hover {
+  background: #ffdb4d;
+  transform: scale(1.02);
+}
+
+.payment-wall-footer-text {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.4);
+  text-align: center;
+  line-height: 1.5;
+  max-width: 400px;
+  margin-bottom: 2rem;
+}
+
+/* MOBILE RESPONSIVE FIXES */
+@media (max-width: 768px) {
+  .payment-wall-center-wrapper {
+    padding-left: 0;
+    padding-right: 0;
+    overflow: visible;
+  }
+
+  .payment-wall-title {
+    font-size: 2rem;
+    padding: 0 1rem;
+  }
+
+  .payment-wall-cards-container {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    justify-content: flex-start;
+    gap: 20px;
+    width: 100%;
+
+    padding: 20px 0 10px 0;
+
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .payment-wall-cards-container::before,
+  .payment-wall-cards-container::after {
+    content: "";
+    flex-shrink: 0;
+    /* This creates the 'dead space' on the left of card 1 and right of card 3 */
+    width: 10vw;
+  }
+
+  .payment-wall-card {
+    flex-shrink: 0;
+    width: 80vw;
+    min-width: 280px;
+    scroll-snap-align: center;
+    scroll-snap-stop: always;
+    transform: none !important;
+    /* Ensure the card doesn't have its own margin fighting the container gap */
+    margin: 0;
+  }
+  
+  /* Ensure center card isn't obscured by edge padding */
+  .payment-wall-card:first-child {
+    margin-left: 0;
+  }
+
+  /* Keep Recommended Card style but reset Scale */
+  .payment-wall-card-recommended {
+    transform: none;
+    border: 2px solid rgba(255, 204, 0, 0.6);
+  }
+
+  .payment-wall-card-recommended:hover {
+    transform: none;
+  }
+}

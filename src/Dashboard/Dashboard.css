@@ -1,0 +1,522 @@
+/* Dashboard.css */
+
+/* Reset white borders - Full viewport coverage */
+html,
+body,
+#root {
+  margin: 0;
+  padding: 0;
+  border: none;
+  height: 100vh;
+  width: 100vw;
+  overflow-x: hidden;
+  box-sizing: border-box;
+}
+
+/* 1. Page Root */
+.dashboard-root-page {
+  min-height: 100vh;
+  background-color: #000;
+  color: #fff;
+  display: flex;
+  align-items: center; 
+  justify-content: center;
+  font-family: "Inter", "Poppins", sans-serif;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  position: relative;
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-top: max(env(safe-area-inset-top), 2rem);
+}
+
+/* Custom Scrollbar */
+.dashboard-root-page::-webkit-scrollbar {
+  width: 8px;
+}
+.dashboard-root-page::-webkit-scrollbar-track {
+  background: #000;
+}
+.dashboard-root-page::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 4px;
+}
+.dashboard-root-page::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* 2. Background Elements */
+.dashboard-bg-wrapper {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.dashboard-bg-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(1px);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* 3. Main Content Wrapper */
+.dashboard-main-content {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  width: 100%;
+  max-width: 400px;
+  padding: 2rem 1rem 4rem 1rem;
+  box-sizing: border-box;
+}
+
+/* 4. Headers & Text */
+.dashboard-text-subtitle {
+  font-size: 0.9rem;
+  letter-spacing: 3px;
+  color: rgba(255, 255, 255, 0.4);
+  text-align: uppercase;
+}
+
+.dashboard-text-title {
+  font-size: 2.4rem;
+  font-weight: 600;
+  line-height: 1.3;
+  color: #eee;
+}
+
+.dashboard-text-highlight {
+  background: linear-gradient(90deg, #ffde59, #ffd000, #ffcc00);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+.dashboard-text-footer-tagline {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.4);
+  text-align: center;
+}
+
+.dashboard-text-footer-tagline a {
+  color: #ffcc00;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* 5. Controls Container */
+.dashboard-controls-container {
+  width: 100%;
+  max-width: 380px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  margin-top: 0.5rem;
+  box-sizing: border-box;
+}
+
+/* 6. Primary Button (New Project) */
+.dashboard-btn-primary {
+  background: #ffcc00;
+  border: none;
+  border-radius: 10px;
+  padding: 12px 14px;
+  color: #000;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: transform 0.2s, background 0.2s;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.dashboard-btn-primary:hover {
+  background: #ffcc00;
+  transform: scale(1.03);
+}
+
+.dashboard-btn-primary:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* 7. Credits Box Elements */
+.dashboard-credits-wrapper {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 12px 14px;
+  color: #fff;
+  font-weight: 500;
+  font-size: 0.95rem;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.4rem;
+  box-sizing: border-box;
+}
+
+.dashboard-credits-label-text {
+  opacity: 0.8;
+}
+
+.dashboard-credits-count-text {
+  color: #ccc;
+  font-weight: 500;
+}
+
+/* 8. Secondary Pill Button (Own Handwriting) */
+.dashboard-btn-secondary-pill {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 9999px; /* Fully rounded pill shape */
+  color: #fff;
+  font-weight: 500;
+  cursor: pointer;
+  font-size: 0.8rem; /* Smaller than credits box */
+  padding: 8px 20px;
+  width: auto;
+  margin: 15px auto 0 auto;
+  display: block;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.dashboard-btn-secondary-pill:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: scale(1.03);
+}
+
+/* 9. Legal Footer Elements */
+.dashboard-legal-bar-container {
+  position: absolute;
+  bottom: 1rem;
+  left: 0;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  z-index: 10;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.dashboard-legal-link-item {
+  color: rgba(255, 255, 255, 0.5);
+  text-decoration: none;
+  font-size: 0.75rem;
+  transition: color 0.2s;
+  cursor: pointer;
+}
+
+.dashboard-legal-link-item:hover {
+  color: #fff;
+}
+
+/* ————————————————————————————————————————— */
+/* ——————— MODAL STYLES (FROM JoinWaitlist) ——————— */
+/* ————————————————————————————————————————— */
+
+.handwrite-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 1rem;
+  box-sizing: border-box;
+}
+
+.handwrite-modal {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+}
+
+.handwrite-content {
+  background: #111;
+  border-radius: 24px;
+  padding: 2rem 2rem 1rem;
+  text-align: center;
+  color: #fff;
+  position: relative;
+  box-sizing: border-box;
+}
+
+.handwrite-checkmark {
+  margin-bottom: 0rem;
+}
+
+.handwrite-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem;
+  line-height: 1.3;
+}
+
+.handwrite-request-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0.5rem 0 1.5rem;
+  line-height: 1.3;
+}
+
+.handwrite-subtitle {
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 1rem 0 1.5rem;
+}
+
+.form-box {
+  width: 100%;
+  max-width: 380px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  margin-top: 0.5rem;
+  box-sizing: border-box;
+}
+
+/* Input style exactly like JoinWaitlist */
+.handwrite-input-styled {
+  background: rgba(255, 255, 255, 0.06);
+  margin-bottom: 7px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #fff;
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 0.95rem;
+  outline: none;
+  transition: border 0.2s;
+  width: 100%;
+  box-sizing: border-box;
+}
+.handwrite-input-styled:focus {
+    border-color: #ffcc00;
+}
+
+/* Success Card Box */
+.handwrite-email-card {
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 16px;
+  padding: 1rem;
+  margin-bottom: 0.5rem;
+  text-align: left;
+  font-size: 0.9rem;
+  box-sizing: border-box;
+}
+
+.error-pill {
+  background: rgba(255, 107, 107, 0.1);
+  border: 1px solid rgba(255, 107, 107, 0.3);
+  border-radius: 25px;
+  padding: 0.5rem 1rem;
+  color: #ff6b6b;
+  font-size: 0.85rem;
+  margin: 0.5rem 0 0.5rem;
+  backdrop-filter: blur(10px);
+  box-sizing: border-box;
+  text-align: center;
+  width: 100%;
+  max-width: 380px;
+}
+
+.email-header-box {
+  background: #111;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 0rem;
+  box-sizing: border-box;
+}
+
+/* Close Button */
+.handwrite-close {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.08),
+    rgba(255, 255, 255, 0.02)
+  );
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(4px);
+}
+
+.handwrite-close:hover {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.15),
+    rgba(255, 255, 255, 0.05)
+  );
+  transform: scale(1.05);
+}
+
+.close-inner {
+  font-size: 1.4rem;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 300;
+  line-height: 1;
+}
+
+/* Add to Dashboard.css */
+
+.dashboard-logout-btn {
+  position: absolute;
+  top: 2rem;
+  right: 2rem;
+  z-index: 50; /* Ensure it sits above content */
+  
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 10px 16px;
+  
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+  transition: all 0.2s ease;
+}
+
+.dashboard-logout-btn svg {
+  color: #ff6b6b; /* Red accent for the icon indicating 'exit' */
+}
+
+/* Mobile Adjustment for Logout Button */
+@media (max-width: 480px) {
+  .dashboard-logout-btn {
+    top: 1rem;
+    right: 1rem;
+    padding: 8px 12px;
+    font-size: 0.8rem;
+  }
+}
+
+/* 10. Mobile Responsiveness */
+@media (max-width: 480px) {
+  html,
+  body,
+  #root {
+    margin: 0;
+    padding: 0;
+    width: 100vw;
+    height: 100dvh;
+    overflow: hidden;
+    background: #000;
+    box-sizing: border-box;
+  }
+
+  .dashboard-root-page {
+    position: relative;
+    width: 100vw;
+    height: 100dvh;
+    min-height: -webkit-fill-available;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: "Inter", "Poppins", sans-serif;
+    color: #fff;
+    background: transparent;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    box-sizing: border-box;
+  }
+
+  .dashboard-main-content {
+    gap: 1rem;
+    padding: 0;
+    max-width: 85%;
+  }
+
+  .dashboard-text-title {
+    font-size: 1.8rem;
+    line-height: 1.2;
+  }
+
+  .dashboard-text-subtitle {
+    font-size: 0.8rem;
+    letter-spacing: 2px;
+  }
+
+  .dashboard-controls-container {
+    max-width: 85%;
+    gap: 0.75rem;
+    width: 100%;
+  }
+
+  .dashboard-btn-primary {
+    padding: 14px 16px;
+    font-size: 1rem;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .dashboard-text-footer-tagline {
+    font-size: 0.8rem;
+    padding: 0 1.5rem;
+    width: 85%;
+  }
+  
+  .dashboard-legal-bar-container {
+    gap: 1rem;
+    bottom: 2.5rem;
+  }
+
+  /* Modal Mobile Fixes */
+  .handwrite-modal-backdrop {
+    padding: 0.5rem;
+    align-items: center;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .handwrite-modal {
+    width: 100%;
+    max-width: 90%;
+  }
+
+  .handwrite-content {
+    padding: 1.5rem 1.25rem 0.75rem;
+    border-radius: 20px;
+  }
+
+  .handwrite-title {
+    font-size: 1.3rem;
+    margin-top: 10px;
+    margin-bottom: 10px;
+  }
+
+  .handwrite-subtitle {
+    font-size: 0.9rem;
+  }
+}

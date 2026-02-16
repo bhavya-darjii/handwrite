@@ -1,21 +1,13 @@
-// Signup.tsx
 import { useState, FormEvent } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { auth } from "../firebase"; // Import auth from your Firebase config
+import { auth, db } from "../firebase";
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import {
-  createUserWithEmailAndPassword,
-  updateProfile,
-} from "firebase/auth";
-import { 
-  doc, 
-  collection,
-  setDoc, 
-  getDocs, 
-  query, 
-  where 
-} from "firebase/firestore"; // Added query and where for waitlist lookup
-import { db } from "../firebase";
+  doc,
+  setDoc,
+  Timestamp, // Kept for createdAt
+} from "firebase/firestore";
 import Aurora from "../Aurora Background/Aurora";
 import "../Aurora Background/Aurora.css";
 import "./Onboarding.css";
@@ -25,6 +17,10 @@ export default function Signup() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
@@ -34,6 +30,16 @@ export default function Signup() {
     setLoading(true);
     setError("");
 
+    // --- STRICT EMAIL VALIDATION ---
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const isInvalidEnd = email.trim().toLowerCase().endsWith(".con");
+
+    if (!emailRegex.test(email) || isInvalidEnd) {
+      setError("Please enter a valid email address.");
+      setLoading(false);
+      return;
+    }
+
     if (password !== confirmPassword) {
       setError("Passwords do not match");
       setLoading(false);
@@ -41,62 +47,49 @@ export default function Signup() {
     }
 
     try {
-      // Create user with Firebase Auth
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      // 1. Create Auth User
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
       const user = userCredential.user;
 
-      // Update profile with name
       await updateProfile(user, { displayName: name });
 
-      // Query waitlist for this email to get number
-      let freeTrialDays = 7; // Default
-      const waitlistQuery = query(collection(db, "waitlist"), where("email", "==", email));
-      const waitlistSnapshot = await getDocs(waitlistQuery);
-      if (!waitlistSnapshot.empty) {
-        const waitlistDoc = waitlistSnapshot.docs[0];
-        const waitlistData = waitlistDoc.data();
-        const userNumber = waitlistData.number || 101; // Default >100 if no number
-        freeTrialDays = userNumber <= 100 ? 30 : 7;
-      }
-
-      // Store additional user data in Firestore
+      // 2. INITIALIZE USER DATA
+      // Logic: Every new user gets 20 credits. 
+      // Expiry is null (credits valid until they hit 0).
+      
       await setDoc(doc(db, "users", user.uid), {
         name,
         email,
-        purchasedPro: false, // Default to false
-        freeTrial: freeTrialDays, // Set based on waitlist number
-        createdAt: new Date(),
+        createdAt: Timestamp.now(),
+
+        // --- CREDIT SYSTEM ---
+        credits: 20,       // Fixed amount for everyone
+        expiryDate: null,  // null = No time limit on these credits
+
+        // --- HANDWRITING RULES ---
+        currentHandwriting: "default",
+        lastStyleChange: null,
+
+        // Metadata
+        isNewUser: true,
       });
 
-      // Set localStorage token for persistence (in production, use Firebase's auth state)
       localStorage.setItem("authToken", user.uid);
 
       setTimeout(() => {
-        navigate("/dashboard"); // Redirect to protected route
+        navigate("/dashboard");
       }, 500);
     } catch (err: any) {
       console.error(err);
-      // User-friendly error mapping
       let errorMessage = "Signup failed. Please try again.";
-      switch (err.code) {
-        case "auth/email-already-in-use":
-          errorMessage = "Email is already registered.";
-          break;
-        case "auth/weak-password":
-          errorMessage = "Password should be at least 6 characters.";
-          break;
-        case "auth/invalid-email":
-          errorMessage = "Please enter a valid email address.";
-          break;
-        case "auth/network-request-failed":
-          errorMessage = "Network error. Please check your connection and try again.";
-          break;
-        case "auth/too-many-requests":
-          errorMessage = "Too many failed attempts. Please try again again later.";
-          break;
-        default:
-          errorMessage = err.message || errorMessage;
-      }
+      if (err.code === "auth/email-already-in-use")
+        errorMessage = "Email is already registered.";
+      if (err.code === "auth/weak-password")
+        errorMessage = "Password too weak.";
       setError(errorMessage);
       setLoading(false);
     }
@@ -104,7 +97,6 @@ export default function Signup() {
 
   return (
     <div className="page">
-      {/* Aurora Background */}
       <div className="aurora-wrapper">
         <div className="aurora-container">
           <Aurora
@@ -115,11 +107,7 @@ export default function Signup() {
           />
         </div>
       </div>
-
-      {/* Dark overlay */}
       <div className="aurora-overlay" />
-
-      {/* Main Content */}
       <div className="center-wrapper">
         <motion.h2
           className="subtitle"
@@ -128,7 +116,6 @@ export default function Signup() {
         >
           HANDWRITE
         </motion.h2>
-
         <motion.h1
           className="title"
           initial={{ opacity: 0, y: 20 }}
@@ -145,11 +132,7 @@ export default function Signup() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-          {error && (
-            <div className="error-pill">
-              {error}
-            </div>
-          )}
+          {error && <div className="error-pill">{error}</div>}
           <input
             type="text"
             placeholder="Full name"
@@ -164,32 +147,110 @@ export default function Signup() {
             onChange={(e) => setEmail(e.target.value)}
             required
           />
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-          <input
-            type="password"
-            placeholder="Confirm Password"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            required
-          />
+
+          {/* PASSWORD INPUT WITH TOGGLE */}
+          <div className="password-wrapper">
+            <input
+              type={showPassword ? "text" : "password"}
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+            <button
+              type="button"
+              className="password-toggle"
+              onClick={() => setShowPassword(!showPassword)}
+              aria-label="Toggle password visibility"
+            >
+              {showPassword ? (
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="rgba(255, 255, 255, 0.5)"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+              ) : (
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="rgba(255, 255, 255, 0.5)"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                  <line x1="1" y1="1" x2="23" y2="23"></line>
+                </svg>
+              )}
+            </button>
+          </div>
+
+          {/* CONFIRM PASSWORD INPUT WITH TOGGLE */}
+          <div className="password-wrapper">
+            <input
+              type={showConfirmPassword ? "text" : "password"}
+              placeholder="Confirm Password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              required
+            />
+            <button
+              type="button"
+              className="password-toggle"
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              aria-label="Toggle confirm password visibility"
+            >
+              {showConfirmPassword ? (
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="rgba(255, 255, 255, 0.5)"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+              ) : (
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="rgba(255, 255, 255, 0.5)"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                  <line x1="1" y1="1" x2="23" y2="23"></line>
+                </svg>
+              )}
+            </button>
+          </div>
+
           <button disabled={loading} type="submit">
-            {loading ? "Getting you in..." : "Sign Up"}
+            {loading ? "Creating Account..." : "Sign Up"}
           </button>
         </motion.form>
-
         <motion.p
           className="footer-text"
           initial={{ opacity: 0 }}
           animate={{ opacity: 0.5 }}
           transition={{ delay: 0.5 }}
         >
-          Already have an account? <a href="/login" style={{ color: "#ffcc00", textDecoration: "underline" }}>Sign in</a>
+          Already have an account?{" "}
+          <a
+            href="/login"
+            style={{ color: "#ffcc00", textDecoration: "underline" }}
+          >
+            Sign in
+          </a>
         </motion.p>
       </div>
     </div>

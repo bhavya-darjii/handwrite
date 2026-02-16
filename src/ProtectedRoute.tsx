@@ -1,95 +1,99 @@
-// ProtectedRoute.tsx
 import { useState, useEffect } from "react";
-import { useNavigate, Outlet, useLocation } from "react-router-dom"; // Added useLocation
-import { db } from "./firebase";
-import { doc, getDoc } from "firebase/firestore";
-import Loading from "./Loading Page/Loading"; // Import the Loading component
+import { useNavigate, Outlet } from "react-router-dom"; 
+// Firebase Imports
+import { db, auth } from "./firebase"; // Import auth here
+import { doc, onSnapshot, Timestamp, updateDoc } from "firebase/firestore"; // Added updateDoc
+import { onAuthStateChanged } from "firebase/auth"; // Import Auth Listener
+import Loading from "./Loading Page/Loading"; 
 
 interface UserData {
-  createdAt: any; // Timestamp or Date
-  freeTrial: number;
-  purchasedPro: boolean;
-  // Add other fields as needed
+  name: string;
+  email: string;
+  credits: number;           
+  expiryDate: Timestamp | null; 
+  currentHandwriting: string;
+  lastStyleChange: Timestamp | null;
+  isAdmin?: boolean; // Added optional type for admin checks
 }
 
 export default function ProtectedRoute() {
   const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(""); // Added error state for fallback
+  const [error, setError] = useState(""); 
   const navigate = useNavigate();
-  const location = useLocation(); // Get current path
-  const token = localStorage.getItem("authToken"); // uid as token
 
   useEffect(() => {
-    const checkAuthAndTrial = async () => {
-      console.log("Starting checkAuthAndTrial for path:", location.pathname); // Debug path
-      if (!token) {
-        console.log("No token, redirecting to login");
-        navigate("/login");
+    let unsubscribeSnapshot: (() => void) | undefined;
+
+    // 1. Listen to Firebase Auth State Changes
+    const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
+      
+      if (!user) {
+        // --- USER IS LOGGED OUT ---
+        console.log("User not authenticated. Redirecting to login...");
+        localStorage.removeItem("authToken"); // Clean up storage
+        setUserData(null);
+        setLoading(false);
+        navigate("/login", { replace: true });
         return;
       }
 
-      try {
-        console.log("Fetching user doc for token:", token); // Debug fetch
-        const userDoc = await getDoc(doc(db, "users", token));
-        console.log("User doc fetched, exists:", userDoc.exists()); // Debug exists
+      // --- USER IS LOGGED IN ---
+      // 2. Set up Real-time Listener for User Data
+      const userDocRef = doc(db, "users", user.uid);
 
-        if (!userDoc.exists()) {
-          console.log("User doc not found, redirecting to login");
-          navigate("/login");
-          return;
-        }
-
-        const data = userDoc.data() as UserData;
-        console.log("User data fetched:", data); // Debug data
-        setUserData(data);
-
-        // Skip trial check if current path is payment-wall (to avoid loop)
-        if (location.pathname === "/payment-wall") {
-          console.log("On payment wall - allowing access");
+      unsubscribeSnapshot = onSnapshot(userDocRef, 
+        (docSnapshot) => {
+          if (docSnapshot.exists()) {
+            const data = docSnapshot.data() as UserData;
+            
+            // --- UPDATED EXPIRY LOGIC ---
+            if (data.expiryDate) {
+               const now = new Date();
+               const expiry = data.expiryDate.toDate();
+               if (now > expiry && data.credits > 0) {
+                   console.log("Plan expired.");
+                   // Set credits to 0 in the database
+                   const userRef = doc(db, "users", user.uid);
+                   updateDoc(userRef, { credits: 0 })
+                    .catch(err => console.error("Auto-wipe failed:", err));
+                   
+                   // Update local view immediately
+                   data.credits = 0;
+               }
+            }
+            
+            setUserData(data);
+            setLoading(false);
+          } else {
+            console.error("User document not found");
+            setError("Account not found.");
+            setLoading(false);
+            // Safety logout if doc doesn't exist
+            auth.signOut(); 
+            navigate("/login", { replace: true });
+          }
+        }, 
+        (err) => {
+          console.error("Error fetching user data:", err);
+          setError("Failed to load account. Please log in again.");
           setLoading(false);
-          return;
         }
+      );
+    });
 
-        // Handle Timestamp from Firestore
-        const createdAtDate = data.createdAt.toDate ? data.createdAt.toDate() : new Date(data.createdAt);
-        const createdAt = createdAtDate.getTime();
-        const now = new Date().getTime();
-        const daysElapsed = Math.floor((now - createdAt) / (1000 * 60 * 60 * 24));
-        console.log("Days elapsed:", daysElapsed, "Free trial:", data.freeTrial); // Debug calculation
-
-        const isPro = data.purchasedPro;
-
-        // Logic 1: Immediate block if freeTrial is 0 and not pro
-        const immediateBlock = data.freeTrial === 0 && !isPro;
-
-        // Logic 2: Time-based expiration if freeTrial > 0
-        const trialExpired = daysElapsed > data.freeTrial;
-
-        console.log("Immediate block:", immediateBlock, "Trial expired:", trialExpired, "Is Pro:", isPro); // Debug logic
-
-        if (immediateBlock || (trialExpired && !isPro)) {
-          console.log("Blocked - redirecting to payment wall");
-          navigate("/payment-wall");
-          return;
-        }
-
-        // If neither block triggers, allow allow access
-        console.log("Access granted");
-        setLoading(false);
-        setError(""); // Clear any error
-      } catch (err) {
-        console.error("Error in checkAuthAndTrial:", err);
-        setError("Failed to load user data. Please log in again.");
-        setLoading(false);
+    // Cleanup both listeners when component unmounts
+    return () => {
+      unsubscribeAuth();
+      if (unsubscribeSnapshot) {
+        unsubscribeSnapshot();
       }
     };
 
-    checkAuthAndTrial();
-  }, [navigate, token, location.pathname]); // Added location.pathname to deps for re-check on path change
+  }, [navigate]); 
 
   if (loading) {
-    return <Loading />; // Use the loading page
+    return <Loading />; 
   }
 
   if (error) {
@@ -97,13 +101,19 @@ export default function ProtectedRoute() {
       <div className="page">
         <div className="center-wrapper">
           <p style={{ color: "#ff6b6b", textAlign: "center" }}>{error}</p>
-          <button onClick={() => navigate("/login")} style={{ background: "#ffcc00", color: "#000", border: "none", padding: "10px 20px", borderRadius: "10px" }}>
+          <button 
+            onClick={() => {
+              auth.signOut();
+              navigate("/login", { replace: true });
+            }} 
+            style={{ background: "#ffcc00", color: "#000", border: "none", padding: "10px 20px", borderRadius: "10px", cursor: 'pointer' }}
+          >
             Go to Login
           </button>
         </div>
       </div>
-    ); // Error fallback with UI
+    ); 
   }
 
-  return userData ? <Outlet /> : null; // Render child routes if valid
+  return userData ? <Outlet context={userData} /> : null; 
 }

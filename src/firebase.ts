@@ -1,8 +1,9 @@
 // src/firebase.ts
 import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth"; // Added import for Auth
+import { getAuth } from "firebase/auth"; 
 import { getFirestore } from "firebase/firestore";
 import { getAnalytics } from "firebase/analytics";
+import { getStorage } from "firebase/storage"; // <--- 1. Import Storage
 
 const firebaseConfig = {
   apiKey: "AIzaSyBIsyI3aJzbCb3xWSO9_qYVr3tNOtkBGIU",
@@ -15,6 +16,8 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app); // Added Auth initialization and export
+
+export const auth = getAuth(app); 
 export const analytics = getAnalytics(app);
 export const db = getFirestore(app);
+export const storage = getStorage(app); // <--- 2. Export Storage

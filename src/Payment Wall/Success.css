@@ -1,0 +1,128 @@
+/* Success.css - Hard Centered */
+.success-page {
+  /* Use 100dvh to handle mobile browser address bars perfectly */
+  height: 100dvh; 
+  width: 100vw;
+  display: flex;
+  align-items: center;    /* Dead Center Vertically */
+  justify-content: center; /* Dead Center Horizontally */
+  background: #000;
+  color: #fff;
+  padding: 1.5rem;
+  box-sizing: border-box;
+  font-family: "Inter", "Poppins", sans-serif;
+  
+  /* Prevent any scrolling on the background */
+  overflow: hidden; 
+  position: fixed; /* Ensures it stays locked to the viewport */
+  top: 0;
+  left: 0;
+}
+
+.success-card {
+  position: relative;
+  z-index: 10;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 2.5rem;
+  border-radius: 28px;
+  width: 100%;
+  max-width: 420px;
+  text-align: center;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+  
+  /* Prevent card from hitting screen edges on tiny phones */
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+/* ... Keep everything else (title, message, buttons) exactly as you have them ... */
+
+.success-checkmark-svg {
+  margin-bottom: 1.5rem;
+  display: flex;
+  justify-content: center;
+}
+
+.success-title {
+  font-size: 2rem;
+  font-weight: 800;
+  margin-bottom: 1rem;
+  letter-spacing: -0.5px;
+  line-height: 1.2;
+}
+
+.success-message {
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.6;
+  margin-bottom: 2rem;
+  padding: 0 0.5rem;
+}
+
+.success-details-box {
+  background: rgba(255, 255, 255, 0.03);
+  padding: 1rem 1.2rem;
+  border-radius: 16px;
+  margin-bottom: 2rem;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.status-badge {
+  color: #00ff88;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.5px;
+}
+
+.success-home-button {
+  width: 100%;
+  background: #fff;
+  color: #000;
+  border: none;
+  padding: 1.1rem;
+  border-radius: 14px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: all 0.2s;
+}
+
+.success-home-button:hover {
+  background: #f0f0f0;
+}
+
+/* MOBILE RESPONSIVENESS */
+@media (max-width: 480px) {
+  .success-card {
+    padding: 2rem 1.5rem;
+    border-radius: 24px;
+  }
+
+  .success-title {
+    font-size: 1.6rem;
+  }
+
+  .success-message {
+    font-size: 0.85rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .success-checkmark-svg svg {
+    width: 54px;
+    height: 54px;
+  }
+}

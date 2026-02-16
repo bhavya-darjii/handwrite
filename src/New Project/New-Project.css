@@ -1,0 +1,199 @@
+/* New-Project.css */
+
+/* Google Fonts */
+@import url("https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&display=swap");
+
+html,
+body,
+#root {
+  margin: 0;
+  padding: 0;
+  border: none;
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 100%;
+  min-height: -webkit-fill-available;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.handwrite-page {
+  min-height: 100vh;
+  min-height: -webkit-fill-available;
+  width: 100%;
+  background-color: #000;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  font-family: "Inter", "Poppins", sans-serif;
+  overflow-y: auto;
+  overflow-x: hidden;
+  position: relative;
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.handwrite-aurora-wrapper {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.handwrite-aurora-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(1px);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.handwrite-center-wrapper {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  width: 100%;
+  max-width: 700px;
+  padding: 2rem 1rem 2rem 1rem;
+  box-sizing: border-box;
+}
+
+.handwrite-subtitle-handwrite {
+  font-size: 0.9rem;
+  letter-spacing: 3px;
+  color: rgba(255, 255, 255, 0.4);
+  text-transform: uppercase;
+}
+
+.handwrite-input-section {
+  width: 100%;
+}
+
+.handwrite-prompt-box {
+  width: 100%;
+  box-sizing: border-box;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 0.95rem;
+  color: #fff;
+  outline: none;
+  transition: border 0.2s;
+  resize: vertical;
+  min-height: 120px;
+  font-family: "Inter", sans-serif;
+}
+
+
+.handwrite-prompt-box::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.handwrite-footer-text {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.4);
+  text-align: center;
+  margin-top: auto;
+  padding-bottom: 1rem;
+}
+
+/* ... Existing CSS ... */
+
+.handwrite-input-section {
+  width: 100%;
+  /* Ensure relative is set so absolute children position correctly */
+  position: relative; 
+}
+
+/* ... existing textarea styles ... */
+
+/* ALIGNMENT TOOL STYLES */
+.handwrite-align-wrapper {
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+    z-index: 10;
+}
+
+.handwrite-align-toggle-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    backdrop-filter: blur(5px);
+    transition: all 0.2s ease;
+}
+
+.handwrite-align-toggle-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: #fff;
+    transform: scale(1.05);
+}
+
+.handwrite-align-menu {
+    position: absolute;
+    bottom: 40px; /* Appear above the button */
+    right: 0;
+    background: #1a1a1a;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    width: 110px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    overflow: hidden;
+}
+
+.align-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: transparent;
+    border: none;
+    color: #aaa;
+    padding: 8px 12px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    width: 100%;
+    text-align: left;
+}
+
+.align-option:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+
+.align-option.active {
+    background: rgba(255, 204, 0, 0.15);
+    color: #ffcc00;
+}
+
+.align-option svg {
+    opacity: 0.8;
+}
+
+@media (max-width: 480px) {
+  .handwrite-center-wrapper {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
