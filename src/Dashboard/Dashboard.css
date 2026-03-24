@@ -19,7 +19,7 @@ body,
   background-color: #000;
   color: #fff;
   display: flex;
-  align-items: center; 
+  align-items: center;
   justify-content: center;
   font-family: "Inter", "Poppins", sans-serif;
   overflow-y: auto;
@@ -29,6 +29,10 @@ body,
   padding-top: env(safe-area-inset-top);
   padding-bottom: env(safe-area-inset-bottom);
   padding-top: max(env(safe-area-inset-top), 2rem);
+}
+
+.dashboard-root-page.center-content {
+  justify-content: center;
 }
 
 /* Custom Scrollbar */
@@ -44,6 +48,25 @@ body,
 }
 .dashboard-root-page::-webkit-scrollbar-thumb:hover {
   background: #555;
+}
+
+/* Loading Spinner */
+.dashboard-spinner {
+  width: 30px;
+  height: 30px;
+  border: 3px solid rgba(255, 255, 255, 0.1);
+  border-top-color: #ffcc00;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* 2. Background Elements */
@@ -105,6 +128,7 @@ body,
   font-size: 0.85rem;
   color: rgba(255, 255, 255, 0.4);
   text-align: center;
+  margin-top: 2rem;
 }
 
 .dashboard-text-footer-tagline a {
@@ -119,7 +143,8 @@ body,
   max-width: 380px;
   display: flex;
   flex-direction: column;
-  gap: 0.8rem;
+  align-items: center;
+  gap: 24px;
   margin-top: 0.5rem;
   box-sizing: border-box;
 }
@@ -134,7 +159,9 @@ body,
   font-weight: 600;
   cursor: pointer;
   font-size: 1rem;
-  transition: transform 0.2s, background 0.2s;
+  transition:
+    transform 0.2s,
+    background 0.2s;
   width: 100%;
   box-sizing: border-box;
 }
@@ -150,7 +177,7 @@ body,
   transform: none;
 }
 
-/* 7. Credits Box Elements */
+/* 7. Credits Box Elements (Original) */
 .dashboard-credits-wrapper {
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -176,6 +203,66 @@ body,
   font-weight: 500;
 }
 
+/* Sleek Credits Card (New) */
+.credits-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 20px 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  min-width: 310px;
+}
+.credits-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.credits-label {
+  color: #ffffff;
+  opacity: 0.8;
+  font-size: 1rem;
+  font-weight: 500;
+}
+.credits-value {
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 600;
+  font-size: 1.1rem;
+  margin-left: -5px;
+}
+.credits-expiry {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.85rem;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.credits-expiry.no-expiry {
+  color: rgba(255, 255, 255, 0.4);
+}
+.credits-purchase-btn {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  padding: 10px 24px;
+  border-radius: 50px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 4px;
+}
+.credits-purchase-btn:hover {
+  background: #ffffff;
+  color: #000000;
+}
+
 /* 8. Secondary Pill Button (Own Handwriting) */
 .dashboard-btn-secondary-pill {
   background: rgba(255, 255, 255, 0.06);
@@ -197,6 +284,41 @@ body,
   background: rgba(255, 255, 255, 0.1);
   border-color: rgba(255, 255, 255, 0.2);
   transform: scale(1.03);
+}
+
+/* Dashboard Logout Button */
+.dashboard-logout-btn {
+  position: absolute;
+  top: 2rem;
+  right: 2rem;
+  z-index: 50; /* Ensure it sits above content */
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 10px 16px;
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+  transition: all 0.2s ease;
+}
+
+.dashboard-logout-btn svg {
+  color: #ff6b6b; /* Red accent for the icon indicating 'exit' */
+}
+
+/* Mobile Adjustment for Logout Button */
+@media (max-width: 480px) {
+  .dashboard-logout-btn {
+    top: 1rem;
+    right: 1rem;
+    padding: 8px 12px;
+    font-size: 0.8rem;
+  }
 }
 
 /* 9. Legal Footer Elements */
@@ -225,7 +347,7 @@ body,
 }
 
 /* ————————————————————————————————————————— */
-/* ——————— MODAL STYLES (FROM JoinWaitlist) ——————— */
+/* ——————— MODAL STYLES (FROM JoinWaitlist & New Modals) ——————— */
 /* ————————————————————————————————————————— */
 
 .handwrite-modal-backdrop {
@@ -255,6 +377,59 @@ body,
   color: #fff;
   position: relative;
   box-sizing: border-box;
+}
+
+/* Welcome Modal Additions */
+.welcome-modal-content {
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.welcome-checkmark {
+  margin-bottom: 1rem;
+}
+.welcome-title,
+.welcome-subtitle {
+  color: #fff;
+}
+.welcome-text-small {
+  font-size: 0.9rem;
+}
+.welcome-btn {
+  margin-top: 1rem;
+}
+
+/* Feedback Modal Additions */
+.feedback-modal-content {
+  background-color: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.feedback-title {
+  color: #fff;
+  margin-bottom: 1rem;
+}
+.feedback-stars-container {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 1.5rem;
+}
+.feedback-star-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+.feedback-textarea {
+  resize: vertical;
+  min-height: 150px;
+  font-family: inherit;
+}
+.feedback-submit-btn {
+  margin-top: 1rem;
 }
 
 .handwrite-checkmark {
@@ -306,10 +481,10 @@ body,
   box-sizing: border-box;
 }
 .handwrite-input-styled:focus {
-    border-color: #ffcc00;
+  border-color: #ffcc00;
 }
 
-/* Success Card Box */
+/* Success Card Box & Message */
 .handwrite-email-card {
   background: rgba(255, 255, 255, 0.06);
   border-radius: 16px;
@@ -318,6 +493,13 @@ body,
   text-align: left;
   font-size: 0.9rem;
   box-sizing: border-box;
+}
+
+.success-message-text {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #fff;
+  text-align: center;
 }
 
 .error-pill {
@@ -380,45 +562,6 @@ body,
   color: rgba(255, 255, 255, 0.7);
   font-weight: 300;
   line-height: 1;
-}
-
-/* Add to Dashboard.css */
-
-.dashboard-logout-btn {
-  position: absolute;
-  top: 2rem;
-  right: 2rem;
-  z-index: 50; /* Ensure it sits above content */
-  
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  padding: 10px 16px;
-  
-  color: #fff;
-  font-size: 0.9rem;
-  font-weight: 500;
-  cursor: pointer;
-  backdrop-filter: blur(4px);
-  transition: all 0.2s ease;
-}
-
-.dashboard-logout-btn svg {
-  color: #ff6b6b; /* Red accent for the icon indicating 'exit' */
-}
-
-/* Mobile Adjustment for Logout Button */
-@media (max-width: 480px) {
-  .dashboard-logout-btn {
-    top: 1rem;
-    right: 1rem;
-    padding: 8px 12px;
-    font-size: 0.8rem;
-  }
 }
 
 /* 10. Mobile Responsiveness */
@@ -486,7 +629,7 @@ body,
     padding: 0 1.5rem;
     width: 85%;
   }
-  
+
   .dashboard-legal-bar-container {
     gap: 1rem;
     bottom: 2.5rem;
@@ -518,5 +661,13 @@ body,
 
   .handwrite-subtitle {
     font-size: 0.9rem;
+  }
+
+  .credits-card {
+    min-width: 220px;
+  }
+
+  .credits-value {
+    margin-left: -6px;
   }
 }

@@ -29,8 +29,10 @@ export default function Dashboard() {
 
   // User Data State
   const [userName, setUserName] = useState("");
+  // State for Expiry Date
+  const [expiryDate, setExpiryDate] = useState<any>(null);
   
-  // NEW: State to hide button if request is completed
+  // State to hide button if request is completed
   const [hasCompletedHandwriting, setHasCompletedHandwriting] = useState(false);
 
   // Modal States
@@ -51,12 +53,10 @@ export default function Dashboard() {
 
   // --- FETCH DATA & CHECK ROLE ---
   useEffect(() => {
-    // Define unsubscribe functions outside to handle cleanup correctly
     let unsubscribeSnapshot: (() => void) | undefined;
     let unsubscribeRequests: (() => void) | undefined;
 
     const unsubscribeAuth = auth.onAuthStateChanged(async (user) => {
-      // Clean up previous listeners on auth change
       if (unsubscribeSnapshot) unsubscribeSnapshot();
       if (unsubscribeRequests) unsubscribeRequests();
 
@@ -72,10 +72,45 @@ export default function Dashboard() {
         }
 
         // 2. IF NOT ADMIN, LISTEN FOR USER DATA
-        unsubscribeSnapshot = onSnapshot(userRef, (docSnap) => {
+        unsubscribeSnapshot = onSnapshot(userRef, async (docSnap) => {
           if (docSnap.exists()) {
             const data = docSnap.data();
-            setCredits(data.credits || 0);
+            
+            let fetchedCredits = data.credits || 0;
+            let fetchedExpiry = data.expiryDate || null;
+
+            // --- EXPIRY CHECK LOGIC ---
+            if (fetchedExpiry) {
+              const now = new Date();
+              let expiryDateObj;
+
+              // Safely parse Firestore Timestamp or standard date
+              if (typeof fetchedExpiry.toDate === 'function') {
+                expiryDateObj = fetchedExpiry.toDate();
+              } else if (fetchedExpiry.seconds) {
+                expiryDateObj = new Date(fetchedExpiry.seconds * 1000);
+              } else {
+                expiryDateObj = new Date(fetchedExpiry);
+              }
+
+              if (now > expiryDateObj) {
+                console.log("Credits expired! Resetting to 0...");
+                fetchedCredits = 0;
+                fetchedExpiry = null;
+
+                try {
+                  await updateDoc(userRef, {
+                    credits: 0,
+                    expiryDate: null
+                  });
+                } catch (error) {
+                  console.error("Failed to reset expired credits in DB:", error);
+                }
+              }
+            }
+
+            setCredits(fetchedCredits);
+            setExpiryDate(fetchedExpiry);
             setUserEmail(data.email || user.email || "");
             setUserName(data.name || user.displayName || "Unknown User");
 
@@ -103,7 +138,6 @@ export default function Dashboard() {
         });
 
         // 3. LISTEN FOR HANDWRITING REQUEST STATUS
-        // FIX: We query ONLY by uid to avoid Indexing errors, then check status in code.
         const requestsRef = collection(db, "handwriting_requests");
         const q = query(
             requestsRef, 
@@ -111,14 +145,8 @@ export default function Dashboard() {
         );
 
         unsubscribeRequests = onSnapshot(q, (snapshot) => {
-            // Check if ANY document in the result has status === "completed"
             const isCompleted = snapshot.docs.some(doc => doc.data().status === "completed");
-            
-            if (isCompleted) {
-                setHasCompletedHandwriting(true);
-            } else {
-                setHasCompletedHandwriting(false);
-            }
+            setHasCompletedHandwriting(isCompleted);
         });
 
       } else {
@@ -135,13 +163,8 @@ export default function Dashboard() {
 
   // --- HANDLERS ---
 
-  const handleNewProject = () => {
-    navigate("/new-project");
-  };
-
-  const handleMakeOwnHandwriting = () => {
-    setShowPhoneModal(true);
-  };
+  const handleNewProject = () => navigate("/new-project");
+  const handleMakeOwnHandwriting = () => setShowPhoneModal(true);
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormError("");
@@ -163,7 +186,6 @@ export default function Dashboard() {
     }
   };
 
-  // --- FEEDBACK SUBMIT HANDLER ---
   const handleFeedbackSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
       const user = auth.currentUser;
@@ -183,9 +205,7 @@ export default function Dashboard() {
           setShowFeedbackModal(false);
           setFeedbackRating(0);
           setFeedbackText("");
-          
           localStorage.setItem("handwrite_last_feedback_date", new Date().toDateString());
-
       } catch (err) {
           console.error("Error sending feedback:", err);
       } finally {
@@ -193,7 +213,6 @@ export default function Dashboard() {
       }
   };
 
-// Submit Logic for Phone
   const handlePhoneSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError("");
@@ -213,7 +232,6 @@ export default function Dashboard() {
 
     try {
       const requestsRef = collection(db, "handwriting_requests");
-      
       const q = query(
         requestsRef, 
         where("phone", "==", phoneNumber), 
@@ -267,29 +285,43 @@ export default function Dashboard() {
     }, 300);
   };
 
+  // --- HELPER: ROBUST EXPIRY DATE FORMATTING ---
+  const getFormattedExpiry = () => {
+    if (!expiryDate) return null;
+    
+    try {
+      let dateObj;
+      if (typeof expiryDate.toDate === 'function') {
+        dateObj = expiryDate.toDate();
+      } else if (expiryDate.seconds) {
+        dateObj = new Date(expiryDate.seconds * 1000);
+      } else {
+        dateObj = new Date(expiryDate);
+      }
+      
+      if (isNaN(dateObj.getTime())) return null;
+
+      return dateObj.toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric' 
+      });
+    } catch (error) {
+      console.error("Error formatting expiry date:", error);
+      return null;
+    }
+  };
+
   // --- LOADING SCREEN ---
   if (isLoading) {
     return (
-      <div className="dashboard-root-page" style={{ justifyContent: "center" }}>
+      <div className="dashboard-root-page center-content">
         <div className="dashboard-bg-wrapper">
           <div className="dashboard-bg-inner">
-            <Aurora
-              colorStops={["#ffcc00", "#FFffff", "#2969ff"]}
-              blend={0.5}
-            />
+            <Aurora colorStops={["#ffcc00", "#FFffff", "#2969ff"]} blend={0.5} />
           </div>
         </div>
-        <div
-          style={{
-            width: "30px",
-            height: "30px",
-            border: "3px solid rgba(255,255,255,0.1)",
-            borderTopColor: "#ffcc00",
-            borderRadius: "50%",
-            animation: "spin 1s linear infinite",
-          }}
-        ></div>
-        <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
+        <div className="dashboard-spinner"></div>
       </div>
     );
   }
@@ -298,12 +330,7 @@ export default function Dashboard() {
     <div className="dashboard-root-page">
       <div className="dashboard-bg-wrapper">
         <div className="dashboard-bg-inner">
-          <Aurora
-            colorStops={["#ffcc00", "#FFffff", "#2969ff"]}
-            blend={0.5}
-            amplitude={1.0}
-            speed={0.5}
-          />
+          <Aurora colorStops={["#ffcc00", "#FFffff", "#2969ff"]} blend={0.5} amplitude={1.0} speed={0.5} />
         </div>
       </div>
 
@@ -334,6 +361,7 @@ export default function Dashboard() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6 }}
         >
+          {/* PRIMARY ACTION */}
           <button
             type="button"
             className="dashboard-btn-primary"
@@ -342,14 +370,35 @@ export default function Dashboard() {
             New Handwrite Project
           </button>
 
-          <div className="dashboard-credits-wrapper">
-            <span className="dashboard-credits-label-text">
-              Available Page Credits:
-            </span>
-            <span className="dashboard-credits-count-text">{credits}</span>
+          {/* SLEEK CREDITS STATUS CARD */}
+          <div className="credits-card">
+            <div className="credits-row">
+              <span className="credits-label">
+                Available Credits:
+              </span>
+              <span className="credits-value">
+                {credits}
+              </span>
+            </div>
+
+            {/* EXPIRY DATE */}
+            <div className={`credits-expiry ${!expiryDate ? 'no-expiry' : ''}`}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
+              {expiryDate ? `Valid until ${getFormattedExpiry()}` : "No expiry date set"}
+            </div>
+
+            <button
+              onClick={() => navigate("/payment-wall")}
+              className="credits-purchase-btn"
+            >
+              Purchase More
+            </button>
           </div>
 
-          {/* CONDITIONAL RENDERING: Button hides if hasCompletedHandwriting is true */}
+          {/* SECONDARY ACTION */}
           {!hasCompletedHandwriting && (
             <button
               type="button"
@@ -359,7 +408,6 @@ export default function Dashboard() {
               Make Your Own Handwriting!
             </button>
           )}
-
         </motion.div>
 
         <motion.p
@@ -378,22 +426,14 @@ export default function Dashboard() {
         animate={{ opacity: 1 }}
         transition={{ delay: 0.8 }}
       >
-        <Link to="/disclaimer" className="dashboard-legal-link-item">
-          Disclaimer
-        </Link>
-        <Link to="/privacy-policy" className="dashboard-legal-link-item">
-          Privacy Policy
-        </Link>
-        <Link to="/terms-of-use" className="dashboard-legal-link-item">
-          Terms of Use
-        </Link>
-        <Link to="/contact-us" className="dashboard-legal-link-item">
-          Contact Us
-        </Link>
+        <Link to="/disclaimer" className="dashboard-legal-link-item">Disclaimer</Link>
+        <Link to="/privacy-policy" className="dashboard-legal-link-item">Privacy Policy</Link>
+        <Link to="/terms-of-use" className="dashboard-legal-link-item">Terms of Use</Link>
+        <Link to="/contact-us" className="dashboard-legal-link-item">Contact Us</Link>
       </motion.div>
 
       {/* ============================================================ */}
-      {/* 1. WELCOME POPUP (Unlimited Credits)                         */}
+      {/* 1. WELCOME POPUP                                             */}
       {/* ============================================================ */}
       <AnimatePresence>
         {showWelcomeModal && (
@@ -413,28 +453,16 @@ export default function Dashboard() {
               transition={{ type: "spring", stiffness: 400, damping: 30 }}
               onClick={(e) => e.stopPropagation()}
             >
-              <div
-                className="handwrite-content"
-                style={{
-                  backgroundColor: "rgba(0, 0, 0, 0.5)",
-                  backdropFilter: "blur(12px)",
-                  WebkitBackdropFilter: "blur(12px)",
-                  border: "1px solid rgba(255, 255, 255, 0.1)",
-                }}
-              >
-                <button
-                  className="handwrite-close"
-                  onClick={handleCloseWelcome}
-                >
+              <div className="handwrite-content welcome-modal-content">
+                <button className="handwrite-close" onClick={handleCloseWelcome}>
                   <span className="close-inner">×</span>
                 </button>
 
                 <motion.div
-                  className="handwrite-checkmark"
+                  className="welcome-checkmark"
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   transition={{ type: "spring", stiffness: 500, damping: 30, delay: 0.1 }}
-                  style={{ marginBottom: "1rem" }}
                 >
                   <svg width="56" height="56" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <circle cx="24" cy="24" r="22" fill="#00ff88" />
@@ -451,18 +479,17 @@ export default function Dashboard() {
                   </svg>
                 </motion.div>
 
-                <h3 className="handwrite-title" style={{ color: "#fff" }}>Congratulations!</h3>
-                <p className="handwrite-subtitle" style={{ color: "#fff" }}>
-                  You just got <b>10 Free Credits</b> for trying out Handwrite.
+                <h3 className="handwrite-title welcome-title">Congratulations!</h3>
+                <p className="handwrite-subtitle welcome-subtitle">
+                  You just got <b>20 Free Credits</b> to try out Handwrite.
                 </p>
-                <p className="handwrite-subtitle" style={{ fontSize: "0.9rem" }}>
+                <p className="handwrite-subtitle welcome-text-small">
                   Use our app freely and tell us how you like it. We are building this for you.
                 </p>
 
                 <button
-                  className="dashboard-btn-primary"
+                  className="dashboard-btn-primary welcome-btn"
                   onClick={handleCloseWelcome}
-                  style={{ marginTop: "1rem" }}
                 >
                   Awesome, Let's Go!
                 </button>
@@ -493,35 +520,23 @@ export default function Dashboard() {
               transition={{ type: "spring", stiffness: 400, damping: 30 }}
               onClick={(e) => e.stopPropagation()}
             >
-              <div 
-                className="handwrite-content"
-                style={{
-                  backgroundColor: "rgba(0, 0, 0, 0.7)",
-                  backdropFilter: "blur(12px)",
-                  WebkitBackdropFilter: "blur(12px)",
-                  border: "1px solid rgba(255, 255, 255, 0.1)",
-                }}
-              >
-                <button
-                  className="handwrite-close"
-                  onClick={() => setShowFeedbackModal(false)}
-                >
+              <div className="handwrite-content feedback-modal-content">
+                <button className="handwrite-close" onClick={() => setShowFeedbackModal(false)}>
                   <span className="close-inner">×</span>
                 </button>
 
-                <h3 className="handwrite-title" style={{ color: "#fff", marginBottom: "1rem" }}>
+                <h3 className="handwrite-title feedback-title">
                   How are you liking Handwrite?
                 </h3>
 
-                {/* 5 STARS RATING */}
-                <div style={{ display: "flex", justifyContent: "center", gap: "10px", marginBottom: "1.5rem" }}>
+                <div className="feedback-stars-container">
                     {[1, 2, 3, 4, 5].map((star) => (
                         <motion.button
                             key={star}
                             whileHover={{ scale: 1.2 }}
                             whileTap={{ scale: 0.9 }}
                             onClick={() => setFeedbackRating(star)}
-                            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+                            className="feedback-star-btn"
                         >
                             <svg width="37" height="37" viewBox="0 0 24 24" fill={star <= feedbackRating ? "#ffcc00" : "none"} stroke="#ffcc00" strokeWidth="1.5">
                                 <path d="M12 17.27L18.18 21L16.54 13.97L22 9.24L14.81 8.63L12 2L9.19 8.63L2 9.24L7.46 13.97L5.82 21L12 17.27Z" />
@@ -535,15 +550,13 @@ export default function Dashboard() {
                         placeholder="Suggest any improvements we could bring to Handwrite..."
                         value={feedbackText}
                         onChange={(e) => setFeedbackText(e.target.value)}
-                        className="handwrite-input-styled"
-                        style={{ resize: "vertical", minHeight: "150px", fontFamily: "inherit" }}
+                        className="handwrite-input-styled feedback-textarea"
                     />
                     
                     <button
                         disabled={isSubmittingFeedback || feedbackRating === 0}
                         type="submit"
-                        className="dashboard-btn-primary"
-                        style={{ marginTop: "1rem" }}
+                        className="dashboard-btn-primary feedback-submit-btn"
                     >
                         {isSubmittingFeedback ? "Sending..." : "Send Feedback"}
                     </button>
@@ -577,21 +590,15 @@ export default function Dashboard() {
               onClick={(e) => e.stopPropagation()}
             >
               <div className="handwrite-content">
-                <button
-                  className="handwrite-close"
-                  onClick={handleClosePhoneModal}
-                >
+                <button className="handwrite-close" onClick={handleClosePhoneModal}>
                   <span className="close-inner">×</span>
                 </button>
 
                 {!submitSuccess ? (
                   <>
-                    <h3 className="handwrite-title">
-                      Digitize Your Handwriting
-                    </h3>
+                    <h3 className="handwrite-title">Digitize Your Handwriting</h3>
                     <p className="handwrite-subtitle">
-                      Enter your phone number. We'll reach out to you within
-                      24-48 hours.
+                      Enter your phone number. We'll reach out to you within 24-48 hours.
                     </p>
 
                     <form className="form-box" onSubmit={handlePhoneSubmit}>
@@ -603,9 +610,7 @@ export default function Dashboard() {
                         className="handwrite-input-styled"
                       />
 
-                      {formError && (
-                        <div className="error-pill">{formError}</div>
-                      )}
+                      {formError && <div className="error-pill">{formError}</div>}
 
                       <button
                         disabled={isSubmitting || phoneNumber.length < 10}
@@ -619,23 +624,12 @@ export default function Dashboard() {
                 ) : (
                   <>
                     <motion.div
-                      className="handwrite-checkmark"
+                      className="welcome-checkmark"
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
-                      transition={{
-                        type: "spring",
-                        stiffness: 500,
-                        damping: 30,
-                        delay: 0.1,
-                      }}
+                      transition={{ type: "spring", stiffness: 500, damping: 30, delay: 0.1 }}
                     >
-                      <svg
-                        width="48"
-                        height="48"
-                        viewBox="0 0 48 48"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
+                      <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <circle cx="24" cy="24" r="22" fill="#00ff88" />
                         <motion.path
                           d="M14 24L21 31L34 17"
@@ -654,16 +648,8 @@ export default function Dashboard() {
 
                     <div className="handwrite-email-card">
                       <div className="email-header-box">
-                        <p
-                          style={{
-                            margin: 0,
-                            fontSize: "0.9rem",
-                            color: "#fff",
-                            textAlign: "center",
-                          }}
-                        >
-                          The Handwrite Team will reach out to you within 24-48
-                          hours.
+                        <p className="success-message-text">
+                          The Handwrite Team will reach out to you within 24-48 hours.
                         </p>
                       </div>
                     </div>

@@ -17,7 +17,6 @@ export default function Login() {
   const navigate = useNavigate();
 
   // CHECK IF ALREADY LOGGED IN
-  // This prevents a logged-in user from even seeing the login page
   useEffect(() => {
     const token = localStorage.getItem("authToken");
     if (token) {
@@ -25,7 +24,12 @@ export default function Login() {
     }
   }, [navigate]);
 
-  // Handle viewport resize for mobile
+  // Clear error message when the user starts typing again
+  useEffect(() => {
+    if (error) setError("");
+  }, [email, password]);
+
+  // Handle viewport resize for mobile (Kept exactly as you had it)
   useEffect(() => {
     let ticking = false;
     const updateViewport = () => {
@@ -72,11 +76,20 @@ export default function Login() {
     setLoading(true);
     setError("");
 
+    const trimmedEmail = email.trim().toLowerCase();
+
+    // Basic frontend validation to save a network request
+    if (!trimmedEmail || !password) {
+      setError("Please enter both your email and password.");
+      setLoading(false);
+      return;
+    }
+
     try {
       // 1. Sign in with Firebase Auth
       const userCredential = await signInWithEmailAndPassword(
         auth,
-        email,
+        trimmedEmail,
         password
       );
       const user = userCredential.user;
@@ -97,48 +110,49 @@ export default function Login() {
       // Set localStorage token
       localStorage.setItem("authToken", user.uid);
 
-      // 3. Redirect based on role using { replace: true }
-      // This "deletes" the login page from the browser's back-button history
+      // 3. Redirect based on role
       setTimeout(() => {
         if (isAdmin) {
-            console.log("Admin role found. Redirecting to Admin Panel.");
             navigate("/admin-dashboard", { replace: true });
         } else {
-            console.log("Standard user. Redirecting to Dashboard.");
             navigate("/dashboard", { replace: true });
         }
       }, 500);
 
     } catch (err: any) {
-      console.error(err);
-      let errorMessage = "Invalid email or password.";
+      console.error("Login Error:", err);
+      
+      // --- EXHAUSTIVE FIREBASE ERROR HANDLING ---
+      let errorMessage = "An unexpected error occurred. Please try again.";
+      
       switch (err.code) {
+        // Modern Firebase returns this for both wrong password and missing user
+        case "auth/invalid-credential": 
+        // Legacy codes (kept just in case)
         case "auth/user-not-found":
-          errorMessage = "No account found with this email.";
-          break;
         case "auth/wrong-password":
-          errorMessage = "Incorrect password.";
+          errorMessage = "Invalid email or password.";
           break;
         case "auth/invalid-email":
           errorMessage = "Please enter a valid email address.";
           break;
-        case "auth/invalid-credential":
-          errorMessage = "Please enter valid credentials.";
-          break;
         case "auth/user-disabled":
-          errorMessage = "This account has been disabled.";
+          errorMessage = "This account has been disabled. Please contact support.";
           break;
         case "auth/too-many-requests":
-          errorMessage = "Too many failed attempts. Please try again later.";
+          errorMessage = "Too many failed attempts. Please try again later or reset your password.";
           break;
         case "auth/network-request-failed":
           errorMessage = "Network error. Please check your connection and try again.";
           break;
-        default:
-          errorMessage = err.message || errorMessage;
       }
+      
       setError(errorMessage);
-      setLoading(false);
+    } finally {
+      // Ensure loading state is turned off if there's an error
+      if (error || !localStorage.getItem("authToken")) {
+        setLoading(false);
+      }
     }
   };
 
@@ -182,12 +196,19 @@ export default function Login() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-          {error && <div className="error-pill">{error}</div>}
+          {/* ARIA live region for accessibility screen readers */}
+          {error && (
+            <div className="error-pill" role="alert" aria-live="assertive">
+              {error}
+            </div>
+          )}
+
           <input
             type="email"
             placeholder="Email address"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            disabled={loading}
             required
           />
 
@@ -197,13 +218,15 @@ export default function Login() {
               placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              disabled={loading}
               required
             />
             <button
               type="button"
               className="password-toggle"
               onClick={() => setShowPassword(!showPassword)}
-              aria-label="Toggle password visibility"
+              aria-label={showPassword ? "Hide password" : "Show password"}
+              disabled={loading}
             >
               {showPassword ? (
                 <svg
@@ -251,6 +274,22 @@ export default function Login() {
           >
             Sign up
           </a>
+        </motion.p>
+
+        {/* Optional but recommended: Forgot Password Link */}
+        <motion.p
+          className="footer-text"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 0.5 }}
+          transition={{ delay: 0.6 }}
+          style={{ marginTop: "10px" }}
+        >
+          {/* <a
+            href="/forgot-password"
+            style={{ color: "rgba(255, 255, 255, 0.6)", fontSize: "0.9rem" }}
+          >
+            Forgot your password?
+          </a> */}
         </motion.p>
       </div>
     </div>

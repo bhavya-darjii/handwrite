@@ -1,13 +1,9 @@
-import { useState, FormEvent } from "react";
+import { useState, FormEvent, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { auth, db } from "../firebase";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
-import {
-  doc,
-  setDoc,
-  Timestamp, // Kept for createdAt
-} from "firebase/firestore";
+import { doc, setDoc, Timestamp } from "firebase/firestore";
 import Aurora from "../Aurora Background/Aurora";
 import "../Aurora Background/Aurora.css";
 import "./Onboarding.css";
@@ -25,23 +21,47 @@ export default function Signup() {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
+  // --- UX POLISH: Clear error message when the user starts typing again ---
+  useEffect(() => {
+    if (error) setError("");
+  }, [name, email, password, confirmPassword]);
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError("");
 
+    const trimmedName = name.trim();
+    const trimmedEmail = email.trim().toLowerCase();
+
+    // --- NAME VALIDATION ---
+    if (trimmedName.length < 2) {
+      setError("Please enter your full name.");
+      setLoading(false);
+      return;
+    }
+
     // --- STRICT EMAIL VALIDATION ---
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const isInvalidEnd = email.trim().toLowerCase().endsWith(".con");
+    const isInvalidEnd = trimmedEmail.endsWith(".con");
 
-    if (!emailRegex.test(email) || isInvalidEnd) {
+    if (!emailRegex.test(trimmedEmail) || isInvalidEnd) {
       setError("Please enter a valid email address.");
       setLoading(false);
       return;
     }
 
+    // --- ROBUST PASSWORD COMPLEXITY ---
+    // Requires: Min 8 chars, 1 uppercase, 1 lowercase, 1 number
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d\w\W]{8,}$/;
+    if (!passwordRegex.test(password)) {
+      setError("Password must be at least 8 characters and include an uppercase letter, a lowercase letter, and a number.");
+      setLoading(false);
+      return;
+    }
+
     if (password !== confirmPassword) {
-      setError("Passwords do not match");
+      setError("Passwords do not match. Please try again.");
       setLoading(false);
       return;
     }
@@ -50,20 +70,20 @@ export default function Signup() {
       // 1. Create Auth User
       const userCredential = await createUserWithEmailAndPassword(
         auth,
-        email,
+        trimmedEmail,
         password
       );
       const user = userCredential.user;
 
-      await updateProfile(user, { displayName: name });
+      await updateProfile(user, { displayName: trimmedName });
 
       // 2. INITIALIZE USER DATA
       // Logic: Every new user gets 20 credits. 
       // Expiry is null (credits valid until they hit 0).
       
       await setDoc(doc(db, "users", user.uid), {
-        name,
-        email,
+        name: trimmedName,
+        email: trimmedEmail,
         createdAt: Timestamp.now(),
 
         // --- CREDIT SYSTEM ---
@@ -83,15 +103,43 @@ export default function Signup() {
       setTimeout(() => {
         navigate("/dashboard");
       }, 500);
+
     } catch (err: any) {
       console.error(err);
-      let errorMessage = "Signup failed. Please try again.";
-      if (err.code === "auth/email-already-in-use")
-        errorMessage = "Email is already registered.";
-      if (err.code === "auth/weak-password")
-        errorMessage = "Password too weak.";
+      
+      // --- EXHAUSTIVE FIREBASE ERROR HANDLING ---
+      let errorMessage = "An unexpected error occurred. Please try again later.";
+      
+      switch (err.code) {
+        case "auth/email-already-in-use":
+          errorMessage = "This email is already registered. Please sign in instead.";
+          break;
+        case "auth/invalid-email":
+          errorMessage = "The email address provided is invalid.";
+          break;
+        case "auth/operation-not-allowed":
+          errorMessage = "Signups are currently disabled. Please contact support.";
+          break;
+        case "auth/weak-password":
+          errorMessage = "Firebase rejected this password for being too weak.";
+          break;
+        case "auth/too-many-requests":
+          errorMessage = "Too many attempts. Please wait a few minutes and try again.";
+          break;
+        case "auth/network-request-failed":
+          errorMessage = "Network error. Please check your internet connection.";
+          break;
+        case "auth/internal-error":
+          errorMessage = "Our servers encountered an error. Please try again.";
+          break;
+      }
+      
       setError(errorMessage);
-      setLoading(false);
+    } finally {
+      // Always stop loading on error so the user can try again
+      if (error || !localStorage.getItem("authToken")) {
+        setLoading(false);
+      }
     }
   };
 
@@ -132,12 +180,19 @@ export default function Signup() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-          {error && <div className="error-pill">{error}</div>}
+          {/* ACCESSIBILITY: ARIA live region for screen readers */}
+          {error && (
+            <div className="error-pill" role="alert" aria-live="assertive">
+              {error}
+            </div>
+          )}
+          
           <input
             type="text"
             placeholder="Full name"
             value={name}
             onChange={(e) => setName(e.target.value)}
+            disabled={loading} // INPUT DISABLING
             required
           />
           <input
@@ -145,6 +200,7 @@ export default function Signup() {
             placeholder="Email address"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            disabled={loading} // INPUT DISABLING
             required
           />
 
@@ -155,13 +211,15 @@ export default function Signup() {
               placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              disabled={loading} // INPUT DISABLING
               required
             />
             <button
               type="button"
               className="password-toggle"
               onClick={() => setShowPassword(!showPassword)}
-              aria-label="Toggle password visibility"
+              aria-label={showPassword ? "Hide password" : "Show password"}
+              disabled={loading} // INPUT DISABLING
             >
               {showPassword ? (
                 <svg
@@ -198,13 +256,15 @@ export default function Signup() {
               placeholder="Confirm Password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
+              disabled={loading} // INPUT DISABLING
               required
             />
             <button
               type="button"
               className="password-toggle"
               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              aria-label="Toggle confirm password visibility"
+              aria-label={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}
+              disabled={loading} // INPUT DISABLING
             >
               {showConfirmPassword ? (
                 <svg

@@ -32,12 +32,25 @@ const UsersModule: React.FC<UsersModuleProps> = ({ allUsers, isLoadingUsers, onB
       return nameMatch || emailMatch;
     });
 
-    // B. Sort if active
+    // B. Sort
     if (sortOrder) {
-      result = [...result].sort((a, b) => {
+      // Sort by credits if active
+      result.sort((a, b) => {
         const creditA = a.credits ?? 0;
         const creditB = b.credits ?? 0;
         return sortOrder === "asc" ? creditA - creditB : creditB - creditA;
+      });
+    } else {
+      // Default: Sort by newest joined (createdAt descending)
+      result.sort((a, b) => {
+        const dateA = a.createdAt && typeof a.createdAt.toDate === "function" 
+          ? a.createdAt.toDate().getTime() 
+          : 0;
+        const dateB = b.createdAt && typeof b.createdAt.toDate === "function" 
+          ? b.createdAt.toDate().getTime() 
+          : 0;
+        
+        return dateB - dateA; // Highest timestamp (newest) comes first
       });
     }
 
@@ -56,7 +69,7 @@ const UsersModule: React.FC<UsersModuleProps> = ({ allUsers, isLoadingUsers, onB
         </h3>
       </div>
 
-{/* --- FILTERS & CONTROLS BAR --- */}
+      {/* --- FILTERS & CONTROLS BAR --- */}
       {!isLoadingUsers && (
         <div
           style={{

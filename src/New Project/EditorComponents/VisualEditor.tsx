@@ -26,8 +26,8 @@ const VisualEditor = forwardRef<VisualEditorHandle, VisualEditorProps>(
           .replace(/<right>/g, '<div style="text-align: right;">')
           .replace(/<\/right>/g, "</div>")
           .replace(/<large>/g, '<font size="4">') 
-          .replace(/<\/large>/g, "</font>");
-          // REMOVED: .replace(/\n/g, "<br>"); 
+          .replace(/<\/large>/g, "</font>")
+          .replace(/\n/g, "<br>"); // Re-added to ensure loaded content keeps gaps
 
         if (!html) html = ""; 
         if (editorRef.current.innerHTML !== html) {
@@ -36,77 +36,79 @@ const VisualEditor = forwardRef<VisualEditorHandle, VisualEditorProps>(
       }
     }, []); 
 
-    // 2. PARSER
+    // 2. PARSER - Safely walks the DOM to keep line breaks and bullets
     const handleInput = () => {
       if (!editorRef.current) return;
 
-      const nodes = editorRef.current.childNodes;
       let processedString = "";
 
-      nodes.forEach((node) => {
+      const walk = (node: Node, currentAlign: string, isLarge: boolean) => {
         if (node.nodeType === Node.TEXT_NODE) {
-          processedString += node.textContent;
+          let text = node.textContent || "";
+          if (text) {
+             if (isLarge) text = `<large>${text}</large>`;
+             if (currentAlign === "center") text = `<center>${text}</center>`;
+             else if (currentAlign === "right") text = `<right>${text}</right>`;
+             processedString += text;
+          }
         } else if (node.nodeType === Node.ELEMENT_NODE) {
           const el = node as HTMLElement;
-          const align = el.style.textAlign;
-          
-          // REMOVED: Specific BR tag check block
+          const tag = el.tagName.toLowerCase();
 
-          // --- FIX: DETECT INNER FONT TAGS ---
-          let content = el.innerHTML;
+          // Check formatting
+          let align = currentAlign;
+          if (el.style.textAlign) align = el.style.textAlign;
 
-          // A. Map Large Tags to <large>
-          content = content
-            .replace(/<font[^>]+size="4"[^>]*>/gi, "<large>")
-            .replace(/<span[^>]+style="[^"]*font-size:\s*(large|18px)[^"]*"[^>]*>/gi, "<large>")
-            .replace(/<\/font>/gi, "</large>")
-            .replace(/<\/span>/gi, "</large>");
+          let large = isLarge;
+          if (tag === "font" && el.getAttribute("size") === "4") large = true;
+          if (el.style.fontSize === "large" || el.style.fontSize === "18px" || el.style.fontSize === "1.25em") large = true;
+          if (tag === "large") large = true;
 
-          // B. Remove Normal Tags (Size 3)
-          content = content
-            .replace(/<font[^>]+size="3"[^>]*>/gi, "")
-            .replace(/<span[^>]+style="[^"]*font-size:\s*(medium|16px)[^"]*"[^>]*>/gi, "");
-
-          // C. Clean up "Stray" closing tags
-          content = content.replace(/<large>([\s\S]*?)<\/large>/g, "%%%OPEN%%%$1%%%CLOSE%%%");
-          content = content.replace(/<\/large>/g, ""); 
-          content = content.replace(/%%%OPEN%%%/g, "<large>").replace(/%%%CLOSE%%%/g, "</large>");
-
-          // D. Strip other tags 
-          // REMOVED: 'br' from the exclusion list below. 
-          // Old regex: /<(?!large|\/large|br)[^>]+>/gi
-          content = content.replace(/<(?!large|\/large)[^>]+>/gi, "");
-          
-          // E. Check if Wrapper itself was large (for single lines)
-          let isWrapperLarge = false;
-          if (el.tagName === "FONT" && el.getAttribute("size") === "4") isWrapperLarge = true;
-          if (el.style.fontSize === "large" || el.style.fontSize === "18px") isWrapperLarge = true;
-
-          if (isWrapperLarge && !content.startsWith("<large>")) {
-             content = `<large>${content}</large>`;
+          // Force breaks for <br>
+          if (tag === "br") {
+            processedString += "\n";
+            return;
           }
 
-          if (processedString.length > 0 && !processedString.endsWith("\n")) {
+          // Force bullet points for lists
+          if (tag === "li") {
+             processedString += "• ";
+          }
+
+          // Check if block element (p, div, ul, etc)
+          const isBlock = ["p", "div", "ul", "ol", "h1", "h2", "h3", "h4", "h5", "h6", "table", "tr"].includes(tag);
+          
+          if (isBlock && processedString.length > 0 && !processedString.endsWith("\n")) {
              processedString += "\n";
           }
 
-          if (align === "center") {
-            processedString += `<center>${content}</center>`;
-          } else if (align === "right") {
-            processedString += `<right>${content}</right>`;
-          } else {
-            processedString += content;
-          }
-          
-          processedString += "\n";
-        }
-      });
+          // Recurse children
+          el.childNodes.forEach(child => walk(child, align, large));
 
-      processedString = processedString.replace(/\n\n\n+/g, "\n\n").trim();
+          // Close block element with a gap
+          if (isBlock && !processedString.endsWith("\n")) {
+             processedString += "\n";
+          }
+        }
+      };
+
+      editorRef.current.childNodes.forEach(child => walk(child, "left", false));
+
+      // Clean up weird invisible spaces
+      processedString = processedString.replace(/\u00A0/g, " ");
       onChange(processedString);
     };
 
-    // 3. HANDLE ENTER KEY
+    // 3. HANDLE PASTE (CRUCIAL FIX FOR CHATGPT/GEMINI)
+    const handlePaste = (e: React.ClipboardEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      // Forces plain text paste. Keeps natural spaces/tabs, strips messy HTML tables
+      const text = e.clipboardData.getData("text/plain");
+      document.execCommand("insertText", false, text);
+      handleInput(); // Immediately trigger the parser
+    };
+
+    // 4. HANDLE ENTER KEY
     const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
       if (e.key === "Enter") {
         setTimeout(() => {
@@ -115,7 +117,7 @@ const VisualEditor = forwardRef<VisualEditorHandle, VisualEditorProps>(
       }
     };
 
-    // 4. EXPOSE FUNCTIONS
+    // 5. EXPOSE FUNCTIONS
     useImperativeHandle(ref, () => ({
       applyAlignment: (align: "left" | "center" | "right") => {
         if (!editorRef.current) return;
@@ -176,6 +178,7 @@ const VisualEditor = forwardRef<VisualEditorHandle, VisualEditorProps>(
           className="handwrite-prompt-box visual-editor"
           data-placeholder={placeholder}
           onInput={handleInput}
+          onPaste={handlePaste} // <-- Added paste interceptor here
           onKeyDown={handleKeyDown} 
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
@@ -189,9 +192,10 @@ const VisualEditor = forwardRef<VisualEditorHandle, VisualEditorProps>(
             zIndex: 5,
             caretColor: "#fff",
             textAlign: "left",
-            borderTopLeftRadius: 0,
-            borderBottomLeftRadius: 0,
-            borderLeft: "none"
+            borderTopLeftRadius: 10,
+            borderBottomLeftRadius: 10,
+            borderLeft: "none",
+            padding: "20px",
           }}
         />
       </>

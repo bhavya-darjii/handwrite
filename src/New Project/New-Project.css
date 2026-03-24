@@ -1,7 +1,7 @@
 /* New-Project.css */
 
-/* Google Fonts */
-@import url("https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&display=swap");
+/* UPDATED: Multiple Google Fonts for handwriting styles */
+@import url('https://fonts.googleapis.com/css2?family=Architects+Daughter&family=Caveat:wght@400;600&family=Dancing+Script:wght@400;700&family=Gochi+Hand&family=Indie+Flower&family=Kalam:wght@300;400;700&family=Patrick+Hand&family=Shadows+Into+Light&display=swap');
 
 html,
 body,
@@ -75,6 +75,8 @@ body,
 
 .handwrite-input-section {
   width: 100%;
+  /* Ensure relative is set so absolute children position correctly */
+  position: relative; 
 }
 
 .handwrite-prompt-box {
@@ -93,7 +95,6 @@ body,
   font-family: "Inter", sans-serif;
 }
 
-
 .handwrite-prompt-box::placeholder {
   color: rgba(255, 255, 255, 0.4);
 }
@@ -105,16 +106,6 @@ body,
   margin-top: auto;
   padding-bottom: 1rem;
 }
-
-/* ... Existing CSS ... */
-
-.handwrite-input-section {
-  width: 100%;
-  /* Ensure relative is set so absolute children position correctly */
-  position: relative; 
-}
-
-/* ... existing textarea styles ... */
 
 /* ALIGNMENT TOOL STYLES */
 .handwrite-align-wrapper {
@@ -145,9 +136,15 @@ body,
     transform: scale(1.05);
 }
 
+.handwrite-align-toggle-btn.active {
+    background: rgba(255, 204, 0, 0.15);
+    color: #ffcc00;
+    border-color: rgba(255, 204, 0, 0.3);
+}
+
 .handwrite-align-menu {
     position: absolute;
-    bottom: 40px; /* Appear above the button */
+    bottom: 40px; 
     right: 0;
     background: #1a1a1a;
     border: 1px solid rgba(255, 255, 255, 0.1);
@@ -158,7 +155,30 @@ body,
     gap: 4px;
     width: 110px;
     box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-    overflow: hidden;
+    
+    /* ADDED: Max height and scrolling so it doesn't break the page */
+    max-height: 195px; 
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* ADDED: Custom scrollbar styling for the dark theme */
+.handwrite-align-menu::-webkit-scrollbar {
+    width: 6px;
+}
+
+.handwrite-align-menu::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: 10px;
+}
+
+.handwrite-align-menu::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 10px;
+}
+
+.handwrite-align-menu::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
 }
 
 .align-option {

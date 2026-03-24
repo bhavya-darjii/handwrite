@@ -5,7 +5,8 @@ import { doc, updateDoc, increment } from "firebase/firestore";
 import { FULL_PAGE_HEIGHT, PREVIEW_WIDTH, PDF_WORD_SPACING } from "./PdfPreviewConfig";
 
 export const generateAndSavePdf = async (
-  totalCost: number
+  totalCost: number,
+  _isFreeUser: boolean
 ): Promise<void> => {
   const isAndroid = /Android/i.test(navigator.userAgent);
   const papers = document.querySelectorAll(".handwrite-preview-paper") as NodeListOf<HTMLElement>;

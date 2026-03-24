@@ -1,9 +1,9 @@
 // ================= CONSTANTS =================
 export const PREVIEW_WIDTH = 660;
 export const FULL_PAGE_HEIGHT = 1000;
-export const VISUAL_PREVIEW_HEIGHT = 1100;
-export const MEASUREMENT_WIDTH_FACTOR = 0.97;
+export const VISUAL_PREVIEW_HEIGHT = 1000;
 export const PADDING_LEFT = 78;
+export const PADDING_RIGHT = 40; // NEW: Standardized right margin for exact syncing
 export const PDF_WORD_SPACING = "5px";
 export const FIXED_LINE_HEIGHT = 25;
 export const CREDITS_PER_PAGE = 5;
@@ -79,31 +79,24 @@ const KJSomaiyaTemplate = () => (
     }}></div>
 
     {/* --- FOOTER --- */}
-    {/* Note: Horizontal line removed as per previous request */}
-
     <div style={{ 
         position: "absolute", 
         bottom: "14px", 
         left: "85px", 
         right: "60px", 
         display: "flex", 
-        justifyContent: "space-between", // Pushes the 3 main groups apart evenly
+        justifyContent: "space-between", 
         alignItems: "center",
         fontSize: "0.7rem", 
         fontWeight: "500",
         fontFamily: "Arial, Helvetica, sans-serif"
     }}>
-      {/* Group 1: Left */}
       <span>Department of</span>
-
-      {/* Group 2: Middle (Grouped tightly) */}
       <div style={{ display: "flex", gap: "25px" }}> 
         <span>/ Class-</span>
         <span>/ Sem-</span>
         <span>/ Sub</span>
       </div>
-
-      {/* Group 3: Right */}
       <span>/ Academic Year-</span>
     </div>
   </div>
@@ -114,13 +107,13 @@ export const COLLEGE_CONFIG = {
   "none": {
     name: "Plain Paper (Default)",
     paddingTop: 74,
-    paddingBottom: 50,
+    paddingBottom: 40, 
     Template: () => <></> 
   },
   "somaiya": {
     name: "K.J. Somaiya",
     paddingTop: 74, 
-    paddingBottom: 60, 
+    paddingBottom: 70, 
     Template: KJSomaiyaTemplate
   },
 };

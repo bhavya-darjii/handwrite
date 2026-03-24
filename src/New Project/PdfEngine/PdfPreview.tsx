@@ -1,4 +1,3 @@
-// PdfPreview.tsx
 import React, { useState, useMemo, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
@@ -9,25 +8,27 @@ import { PdfPreviewProps } from "./PdfPreviewTypes";
 import { 
   COLLEGE_CONFIG, 
   CollegeId, 
-  FULL_PAGE_HEIGHT,
+  FULL_PAGE_HEIGHT, 
   VISUAL_PREVIEW_HEIGHT, 
   PREVIEW_WIDTH, 
   PADDING_LEFT, 
-  FIXED_LINE_HEIGHT,
+  PADDING_RIGHT, // IMPORT ADDED HERE
+  FIXED_LINE_HEIGHT, 
   CREDITS_PER_PAGE,
   STORAGE_KEY_TIPS,
   MAX_TIPS_COUNT 
 } from "./PdfPreviewConfig";
-import { parseContentToBlocks, calculatePages, calculateMarginPages } from "./PdfPreviewUtils";
-import { generateAndSavePdf } from "./PdfExportHelper";
+import { parseContentToBlocks, calculatePages } from "./PdfPreviewUtils";
+import { generateAndSavePdf } from "./PdfExportHelper"; 
 import { PrintModal } from "./PrintModal";
 
 export default function PdfPreview({
   content,
-  marginContent,
   activeFontFamily,
   isFontLoading,
   userCredits,
+  globalScale = 1,
+  expiryDate, 
 }: PdfPreviewProps) {
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
@@ -36,25 +37,19 @@ export default function PdfPreview({
   const [loading, setLoading] = useState(false);
   const [showPrintModal, setShowPrintModal] = useState(false);
 
-  // 1. Get Config
+  const isFreeUser = !expiryDate;
+
   const activeConfig = COLLEGE_CONFIG[collegeMode] || COLLEGE_CONFIG["none"];
   const writableHeightLimit = FULL_PAGE_HEIGHT - activeConfig.paddingBottom;
 
-  // 2. Parse Blocks
   const rawBlocks = useMemo(() => {
-     return parseContentToBlocks(content);
+      return parseContentToBlocks(content);
   }, [content]);
 
-  // 3. Paginate
   const pages = useMemo(() => {
     if (isFontLoading) return [{ blocks: [], isEmpty: true }];
-    return calculatePages(rawBlocks, activeFontFamily, activeConfig.paddingTop, writableHeightLimit);
-  }, [rawBlocks, activeFontFamily, isFontLoading, activeConfig.paddingTop, writableHeightLimit]);
-
-  // 4. Margin Pagination
-  const marginPages = useMemo(() => {
-     return calculateMarginPages(marginContent, pages.length, writableHeightLimit);
-  }, [marginContent, pages.length, writableHeightLimit]);
+    return calculatePages(rawBlocks, activeFontFamily, activeConfig.paddingTop, writableHeightLimit, globalScale);
+  }, [rawBlocks, activeFontFamily, isFontLoading, activeConfig.paddingTop, writableHeightLimit, globalScale]);
 
   useEffect(() => {
     if (pages.length === 0) setCurrentPage(1);
@@ -63,7 +58,6 @@ export default function PdfPreview({
   const totalCost = pages.length * CREDITS_PER_PAGE;
   const hasEnoughCredits = userCredits >= totalCost;
 
-  // --- Handlers ---
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const element = e.currentTarget;
     const approxPageHeight = FULL_PAGE_HEIGHT + 32; 
@@ -87,7 +81,7 @@ export default function PdfPreview({
     if (count >= MAX_TIPS_COUNT) { executePDFExport(); return; }
     
     if (count === 0 || Math.random() < 0.4) {
-      setShowPrintModal(true);
+      setShowPrintModal(true); 
       localStorage.setItem(STORAGE_KEY_TIPS, (count + 1).toString());
     } else {
       executePDFExport();
@@ -100,7 +94,7 @@ export default function PdfPreview({
     
     setLoading(true);
     try {
-      await generateAndSavePdf(totalCost);
+      await generateAndSavePdf(totalCost, isFreeUser); 
     } catch (error) {
       console.error(error);
     } finally {
@@ -108,11 +102,10 @@ export default function PdfPreview({
     }
   };
 
-  // --- Render Helpers ---
   const renderedPages = pages.map((page, index) => (
     <div
       key={index}
-      className="handwrite-preview-paper"
+      className="handwrite-preview-paper" 
       style={{
         width: `${PREVIEW_WIDTH}px`,
         height: `${VISUAL_PREVIEW_HEIGHT}px`, 
@@ -124,57 +117,94 @@ export default function PdfPreview({
     >
       <activeConfig.Template />
 
+      {isFreeUser && (
+        <div className="handwrite-watermark">
+          Created with Handwrite<br />
+          <div 
+            data-html2canvas-ignore="true" 
+            className="handwrite-watermark-promo no-print" 
+            onClick={() => navigate("/payment-wall")}
+          >
+            <span style={{ textDecoration: "underline" }}>Remove Watermark</span> for just ₹29
+          </div>
+        </div>
+      )}
+
+      {/* Main Content Area */}
       <div 
-        className="handwrite-margin-column"
-        style={{
-            position: "absolute",
-            left: "0",
-            top: "0",
-            bottom: "0",
-            width: `70px`, 
-            paddingTop: `${activeConfig.paddingTop}px`, 
-            textAlign: "center",
-            fontFamily: activeFontFamily,
-            fontSize: "1.40rem",
-            lineHeight: `25px`, 
-            color: "#001299", 
-            whiteSpace: "pre",
-            overflow: "hidden",
-            zIndex: 10
-        }}
-      >
-        {marginPages[index] || ""} 
-      </div>
-      <div
         className="handwrite-paper-content"
         style={{ 
           fontFamily: activeFontFamily,
+          fontSize: `${24 * globalScale}px`,
           paddingTop: `${activeConfig.paddingTop - 2}px`, 
           paddingLeft: `${PADDING_LEFT}px`,
-          paddingRight: "0px",
-          paddingBottom: `${activeConfig.paddingBottom}px`, 
-          textAlign: "left", 
+          paddingRight: `${PADDING_RIGHT}px`, 
+          width: "100%", 
+          boxSizing: "border-box", 
+          textAlign: "left", // Enforce left alignment
+          textJustify: "none", // CRITICAL: Stop PDF renderer from stretching spaces
           display: "flex",
           flexDirection: "column",
           lineHeight: `${FIXED_LINE_HEIGHT}px`, 
           zIndex: 5,
-          position: "relative"
+          position: "relative",
+          wordSpacing: "5px",
+          textRendering: "geometricPrecision" // Helps canvas engines calculate font widths better
         }}
       >
         {page.isEmpty && index === 0 ? (
-              <div>Your notes will appear here in your own handwriting...</div>
+           <div 
+             style={{ 
+               color: "#001299",
+               lineHeight: `${FIXED_LINE_HEIGHT}px`, 
+               fontFamily: activeFontFamily,
+               whiteSpace: "pre-wrap", 
+               paddingTop: "2px",
+               textAlign: "left"
+             }}
+           >
+             {`Start typing or paste your questions...\n(e.g., "1. What is React?")`}
+           </div>
         ) : (
             page.blocks.map((block, bIdx) => (
                 <div 
                     key={bIdx} 
-                    className="handwrite-text-block"
+                    className="handwrite-text-block" 
                     style={{ 
-                        textAlign: block.align as any, 
+                        // Strictly enforce alignment based on the block, default to left
+                        textAlign: block.align === "center" ? "center" : block.align === "right" ? "right" : "left", 
+                        textJustify: "none", // Prevent phantom justification gaps
                         whiteSpace: "pre-wrap", 
+                        wordBreak: "break-word", // Ensures long strings break without messing up spacing
                         width: "100%",
-                        lineHeight: `${FIXED_LINE_HEIGHT}px` 
+                        minHeight: `${FIXED_LINE_HEIGHT}px`,
+                        lineHeight: `${FIXED_LINE_HEIGHT}px`,
+                        position: "relative",
+                        flexShrink: 0,
+                        display: "block"
                     }}
                 >
+                    {block.marginMarker && (
+                        <span 
+                            style={{
+                                position: "absolute",
+                                left: "-70px", 
+                                top: 0,        
+                                width: "60px",
+                                height: `${FIXED_LINE_HEIGHT}px`,
+                                textAlign: "center",
+                                color: "#001299", 
+                                fontWeight: "normal",
+                                pointerEvents: "none",
+                                display: "flex",       
+                                alignItems: "center",
+                                justifyContent: "center"
+                            }}
+                        >
+                            {block.marginMarker}
+                        </span>
+                    )}
+
                     {block.segments.map((seg, sIdx) => (
                       <span
                         key={sIdx}
@@ -230,7 +260,6 @@ export default function PdfPreview({
         )}
       </motion.div>
       
-      {/* EXPORT SECTION */}
       <motion.div
         className="handwrite-export-section"
         style={{ flexDirection: "column", alignItems: "center" }}
@@ -238,69 +267,65 @@ export default function PdfPreview({
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.4 }}
       >
-{/* DROPDOWN SELECTOR - EXACT PROMPT BOX MATCH */}
-<div style={{ 
-    marginBottom: "35px", 
-    width: "100%", 
-    maxWidth: "350px", // Matches a typical prompt width
-    display: "flex", 
-    flexDirection: "column", 
-    alignItems: "center" // Align label to left like a form input
-}}>
-    <label style={{ 
-        fontSize: "0.85rem", 
-        color: "rgba(255, 255, 255, 0.5)", // Matches your footer/placeholder text
-        marginBottom: "8px", 
-        fontWeight: "500",
-        marginLeft: "2px"
-    }}>
-      Select Paper Template
-    </label>
-    
-    <div style={{ position: "relative", width: "100%" }}>
-        <select 
-          value={collegeMode}
-          onChange={(e) => setCollegeMode(e.target.value as CollegeId)}
-          style={{
-            width: "100%",
-            boxSizing: "border-box",
-            // --- EXACT MATCH FROM .handwrite-prompt-box ---
-            background: "rgba(255, 255, 255, 0.06)",
-            border: "1px solid rgba(255, 255, 255, 0.08)",
-            borderRadius: "10px",
-            padding: "12px 14px",
-            fontSize: "0.95rem",
-            color: "#fff",
-            fontFamily: '"Inter", sans-serif',
-            // ----------------------------------------------
-            cursor: "pointer",
-            outline: "none",
-            appearance: "none", // Hides default arrow
-            fontWeight: "400",
-            transition: "border 0.2s",
-          }}
-        >
-          {Object.entries(COLLEGE_CONFIG).map(([key, config]) => (
-            <option key={key} value={key} style={{ backgroundColor: "#111", color: "#fff", padding: "10px" }}>
-              {config.name}
-            </option>
-          ))}
-        </select>
-        
-        {/* Subtle Arrow to match the clean aesthetic */}
-        <div style={{
-            position: "absolute",
-            right: "14px",
-            top: "50%",
-            transform: "translateY(-50%)",
-            pointerEvents: "none",
-            color: "rgba(255, 255, 255, 0.4)", 
-            fontSize: "0.7rem",
+        <div style={{ 
+            marginBottom: "35px", 
+            width: "100%", 
+            maxWidth: "350px", 
+            display: "flex", 
+            flexDirection: "column", 
+            alignItems: "center"
         }}>
-            ▼
+            <label style={{ 
+                fontSize: "0.85rem", 
+                color: "rgba(255, 255, 255, 0.5)", 
+                marginBottom: "8px", 
+                fontWeight: "500",
+                marginLeft: "2px"
+            }}>
+              Select Paper Template
+            </label>
+            
+            <div style={{ position: "relative", width: "100%" }}>
+                <select 
+                  value={collegeMode}
+                  onChange={(e) => setCollegeMode(e.target.value as CollegeId)}
+                  style={{
+                    width: "100%",
+                    boxSizing: "border-box",
+                    background: "rgba(255, 255, 255, 0.06)",
+                    border: "1px solid rgba(255, 255, 255, 0.08)",
+                    borderRadius: "10px",
+                    padding: "12px 14px",
+                    fontSize: "0.95rem",
+                    color: "#fff",
+                    fontFamily: '"Inter", sans-serif',
+                    cursor: "pointer",
+                    outline: "none",
+                    appearance: "none",
+                    fontWeight: "400",
+                    transition: "border 0.2s",
+                  }}
+                >
+                  {Object.entries(COLLEGE_CONFIG).map(([key, config]) => (
+                    <option key={key} value={key} style={{ backgroundColor: "#111", color: "#fff", padding: "10px" }}>
+                      {config.name}
+                    </option>
+                  ))}
+                </select>
+                
+                <div style={{
+                    position: "absolute",
+                    right: "14px",
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    pointerEvents: "none",
+                    color: "rgba(255, 255, 255, 0.4)", 
+                    fontSize: "0.7rem",
+                }}>
+                    ▼
+                </div>
+            </div>
         </div>
-    </div>
-</div>
 
         <button
           className="handwrite-export-button handwrite-pdf"
@@ -324,7 +349,6 @@ export default function PdfPreview({
         </button>
       </motion.div>
 
-      {/* MODAL */}
       <AnimatePresence>
         {showPrintModal && (
           <PrintModal 
