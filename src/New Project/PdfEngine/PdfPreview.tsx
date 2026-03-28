@@ -40,6 +40,7 @@ export default function PdfPreview({
   const isFreeUser = !expiryDate;
 
   const activeConfig = COLLEGE_CONFIG[collegeMode] || COLLEGE_CONFIG["none"];
+  // Calculate maximum line bounds without strict safety buffers since text is now line-locked
   const writableHeightLimit = FULL_PAGE_HEIGHT - activeConfig.paddingBottom;
 
   const rawBlocks = useMemo(() => {
@@ -148,7 +149,7 @@ export default function PdfPreview({
           lineHeight: `${FIXED_LINE_HEIGHT}px`, 
           zIndex: 5,
           position: "relative",
-          wordSpacing: "5px",
+          wordSpacing: "8px",
           textRendering: "geometricPrecision" // Helps canvas engines calculate font widths better
         }}
       >
@@ -174,8 +175,9 @@ export default function PdfPreview({
                         // Strictly enforce alignment based on the block, default to left
                         textAlign: block.align === "center" ? "center" : block.align === "right" ? "right" : "left", 
                         textJustify: "none", // Prevent phantom justification gaps
-                        whiteSpace: "pre-wrap", 
-                        wordBreak: "break-word", // Ensures long strings break without messing up spacing
+                        whiteSpace: "nowrap", // PERFECTLY LOCK LINE BOUNDARIES
+                        wordBreak: "normal", 
+                        wordSpacing: "8px", // Explicitly push word-spacing to blocks
                         width: "100%",
                         minHeight: `${FIXED_LINE_HEIGHT}px`,
                         lineHeight: `${FIXED_LINE_HEIGHT}px`,

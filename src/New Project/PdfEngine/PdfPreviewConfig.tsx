@@ -1,10 +1,10 @@
 // ================= CONSTANTS =================
-export const PREVIEW_WIDTH = 660;
+export const PREVIEW_WIDTH = 660; // Reduce width of preview paper only
 export const FULL_PAGE_HEIGHT = 1000;
 export const VISUAL_PREVIEW_HEIGHT = 1000;
 export const PADDING_LEFT = 78;
-export const PADDING_RIGHT = 40; // NEW: Standardized right margin for exact syncing
-export const PDF_WORD_SPACING = "5px";
+export const PADDING_RIGHT = 40;
+export const PDF_WORD_SPACING = "8px";
 export const FIXED_LINE_HEIGHT = 25;
 export const CREDITS_PER_PAGE = 5;
 export const STORAGE_KEY_TIPS = "handwrite_print_tips_count";
@@ -107,13 +107,13 @@ export const COLLEGE_CONFIG = {
   "none": {
     name: "Plain Paper (Default)",
     paddingTop: 74,
-    paddingBottom: 40, 
+    paddingBottom: 20, 
     Template: () => <></> 
   },
   "somaiya": {
     name: "K.J. Somaiya",
     paddingTop: 74, 
-    paddingBottom: 70, 
+    paddingBottom: 25, 
     Template: KJSomaiyaTemplate
   },
 };

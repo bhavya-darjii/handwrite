@@ -1,11 +1,11 @@
 // PdfPreviewUtils.ts
 import { TextSegment, TextBlock, PageData } from "./PdfPreviewTypes";
-import { 
-  FIXED_LINE_HEIGHT, 
-  PREVIEW_WIDTH, 
+import {
+  FIXED_LINE_HEIGHT,
+  PREVIEW_WIDTH,
   PADDING_LEFT,
-  PADDING_RIGHT, // IMPORT ADDED HERE
-  PDF_WORD_SPACING 
+  PADDING_RIGHT,
+  PDF_WORD_SPACING
 } from "./PdfPreviewConfig";
 
 // --- SNAP HEIGHT TO GRID ---
@@ -18,12 +18,12 @@ export const snapToGrid = (rawHeight: number) => {
 // --- HELPER: Extract Margin Number ---
 const extractMarginInfo = (htmlContent: string) => {
   const regex = /^(\s*(?:<[^>]+>)?\s*)(Q?\d+[\.\)])(?:\s+|$)/i;
-  
+
   const match = htmlContent.match(regex);
   if (match) {
-    return { 
-      marker: match[2], 
-      cleanContent: htmlContent.substring(match[0].length) 
+    return {
+      marker: match[2],
+      cleanContent: htmlContent.substring(match[0].length)
     };
   }
   return { marker: undefined, cleanContent: htmlContent };
@@ -44,7 +44,7 @@ const parseSegments = (input: string): TextSegment[] => {
       }
       if (normalText.length > 0) segments.push({ text: normalText, isLarge: false });
     }
-    const largeText = match[1].replace(/(\r\n|\n|\r)/gm, ""); 
+    const largeText = match[1].replace(/(\r\n|\n|\r)/gm, "");
     if (largeText.length > 0) segments.push({ text: largeText, isLarge: true });
     lastIndex = regex.lastIndex;
   }
@@ -56,7 +56,7 @@ const parseSegments = (input: string): TextSegment[] => {
     }
     if (normalText.length > 0) segments.push({ text: normalText, isLarge: false });
   }
-  
+
   return segments;
 };
 
@@ -69,13 +69,13 @@ export const parseContentToBlocks = (rawContent: string): TextBlock[] => {
 
   lines.forEach((line) => {
     if (!line.trim()) {
-        blocks.push({
-            segments: [],
-            align: "left",
-            id: Math.random().toString(36).substr(2, 9),
-            marginMarker: undefined
-        });
-        return;
+      blocks.push({
+        segments: [],
+        align: "left",
+        id: Math.random().toString(36).substr(2, 9),
+        marginMarker: undefined
+      });
+      return;
     }
 
     let align: "left" | "center" | "right" = "left";
@@ -91,11 +91,11 @@ export const parseContentToBlocks = (rawContent: string): TextBlock[] => {
 
     let marginMarker: string | undefined = undefined;
     if (align === "left") {
-        const result = extractMarginInfo(processedLine);
-        if (result.marker) {
-            marginMarker = result.marker;
-            processedLine = result.cleanContent;
-        }
+      const result = extractMarginInfo(processedLine);
+      if (result.marker) {
+        marginMarker = result.marker;
+        processedLine = result.cleanContent;
+      }
     }
 
     const segments = parseSegments(processedLine);
@@ -115,11 +115,11 @@ export const parseContentToBlocks = (rawContent: string): TextBlock[] => {
 
 // --- PAGINATION CALCULATOR ---
 export const calculatePages = (
-  blocks: TextBlock[], 
+  blocks: TextBlock[],
   fontFamily: string,
   paddingTop: number,
   writableLimit: number,
-  globalScale: number = 1 
+  globalScale: number = 1
 ): PageData[] => {
   if (blocks.length === 0) return [{ blocks: [], isEmpty: true }];
 
@@ -130,66 +130,41 @@ export const calculatePages = (
   Object.assign(tempDiv.style, {
     position: "absolute",
     visibility: "hidden",
-    width: `${PREVIEW_WIDTH}px`, 
-    padding: `0px ${PADDING_RIGHT}px 0px ${PADDING_LEFT}px`, 
-    boxSizing: "border-box", 
+    width: `${PREVIEW_WIDTH}px`,
+    padding: `0px ${PADDING_RIGHT}px 0px ${PADDING_LEFT}px`, // Unified native margin!
+    boxSizing: "border-box",
     fontFamily: fontFamily,
-    fontSize: `${24 * globalScale}px`, 
+    fontSize: `${24 * globalScale}px`,
     lineHeight: `${FIXED_LINE_HEIGHT}px`,
     whiteSpace: "pre-wrap",
     wordBreak: "break-word",
-    wordSpacing: PDF_WORD_SPACING 
+    wordSpacing: PDF_WORD_SPACING,
+    textRendering: "geometricPrecision" // match UI perfectly
   });
   document.body.appendChild(tempDiv);
 
   const pages: PageData[] = [];
   let currentPageBlocks: TextBlock[] = [];
-  let currentHeightUsed = paddingTop; 
+  let currentHeightUsed = paddingTop;
 
   for (let i = 0; i < blocks.length; i++) {
     let block = blocks[i];
     let remainingSegments = [...block.segments];
-    let isFirstChunk = true; 
+    let isFirstChunk = true;
 
     if (remainingSegments.length === 0 && !block.marginMarker) {
-        if (currentHeightUsed + FIXED_LINE_HEIGHT <= writableLimit) {
-            currentPageBlocks.push(block);
-            currentHeightUsed += FIXED_LINE_HEIGHT;
-        } else {
-            pages.push({ blocks: currentPageBlocks, isEmpty: false });
-            currentPageBlocks = [block];
-            currentHeightUsed = paddingTop + FIXED_LINE_HEIGHT;
-        }
-        continue;
+      if (currentHeightUsed + FIXED_LINE_HEIGHT <= writableLimit) {
+        currentPageBlocks.push(block);
+        currentHeightUsed += FIXED_LINE_HEIGHT;
+      } else {
+        pages.push({ blocks: currentPageBlocks, isEmpty: false });
+        currentPageBlocks = [block];
+        currentHeightUsed = paddingTop + FIXED_LINE_HEIGHT;
+      }
+      continue;
     }
 
-    while (remainingSegments.length > 0 || (isFirstChunk && remainingSegments.length === 0)) {
-      tempDiv.style.textAlign = block.align;
-      tempDiv.innerHTML = "";
-      
-      remainingSegments.forEach((seg) => {
-        const span = document.createElement("span");
-        span.textContent = seg.text;
-        if (seg.isLarge) {
-            span.style.fontSize = "1.25em";
-            span.style.display = "inline";
-        }
-        tempDiv.appendChild(span);
-      });
-
-      const rawBlockHeight = Math.max(tempDiv.offsetHeight, FIXED_LINE_HEIGHT);
-      const fullBlockHeight = snapToGrid(rawBlockHeight);
-
-      if (currentHeightUsed + fullBlockHeight <= writableLimit) {
-        currentPageBlocks.push({ 
-            ...block, 
-            segments: remainingSegments,
-            marginMarker: isFirstChunk ? block.marginMarker : undefined
-        });
-        currentHeightUsed += fullBlockHeight;
-        break; 
-      }
-
+    while (remainingSegments.length > 0 || (isFirstChunk && block.marginMarker)) {
       // If there isn't room for even a single line, push a new page and retry
       if (currentHeightUsed + FIXED_LINE_HEIGHT > writableLimit) {
         pages.push({ blocks: currentPageBlocks, isEmpty: false });
@@ -197,6 +172,19 @@ export const calculatePages = (
         currentHeightUsed = paddingTop;
         continue;
       }
+
+      // If it's just a margin marker but no text segments
+      if (remainingSegments.length === 0 && block.marginMarker && isFirstChunk) {
+        currentPageBlocks.push({
+          ...block,
+          segments: [],
+          marginMarker: block.marginMarker
+        });
+        currentHeightUsed += FIXED_LINE_HEIGHT;
+        break; // done with this block
+      }
+
+      tempDiv.style.textAlign = block.align;
 
       const fullRemainingText = remainingSegments.map((seg) => seg.text).join("");
       let totalLength = fullRemainingText.length;
@@ -206,23 +194,24 @@ export const calculatePages = (
         const mid = Math.floor((low + high) / 2);
         tempDiv.innerHTML = "";
         let accumulated = 0;
-        
+
         for (let seg of remainingSegments) {
           let take = Math.min(seg.text.length, mid - accumulated);
           if (take <= 0) break;
           const span = document.createElement("span");
           span.textContent = seg.text.substring(0, take);
           if (seg.isLarge) {
-             span.style.fontSize = "1.25em";
-             span.style.display = "inline";
+            span.style.fontSize = "1.25em";
+            span.style.display = "inline";
           }
           tempDiv.appendChild(span);
           accumulated += take;
           if (accumulated >= mid) break;
         }
 
-        const segmentHeight = snapToGrid(tempDiv.offsetHeight);
-        if (currentHeightUsed + segmentHeight <= writableLimit) {
+        const rawHeight = tempDiv.offsetHeight;
+        // Only accept if it fits on ONE line (with a tiny buffer for browser subpixel rendering)
+        if (rawHeight <= FIXED_LINE_HEIGHT + 10) {
           splitCharIndex = mid;
           low = mid + 1;
         } else {
@@ -230,15 +219,20 @@ export const calculatePages = (
         }
       }
 
-      if (splitCharIndex === 0) splitCharIndex = 1; 
+      if (splitCharIndex === 0) splitCharIndex = 1;
 
       if (splitCharIndex > 0 && splitCharIndex < totalLength) {
         const charAfter = fullRemainingText[splitCharIndex];
+        // If we didn't naturally land on a space/newline, backtrack to the nearest one
         if (![" ", "\n"].includes(charAfter)) {
           const lastSpace = fullRemainingText.lastIndexOf(" ", splitCharIndex);
           const lastNewline = fullRemainingText.lastIndexOf("\n", splitCharIndex);
           const bestBreak = Math.max(lastSpace, lastNewline);
-          if (bestBreak > splitCharIndex - 100) splitCharIndex = bestBreak;
+
+          // Only snap back if we found a reasonable break point
+          if (bestBreak > splitCharIndex - 100 && bestBreak > 0) {
+            splitCharIndex = bestBreak;
+          }
         }
       }
 
@@ -266,26 +260,32 @@ export const calculatePages = (
         }
 
         let remText = splitSeg.text.substring(segmentSplitPos);
+
+        // CRITICAL FIX: Eliminate leading spaces on the next line if we cleanly wrapped at a space
+        if (remText.startsWith(" ")) {
+          remText = remText.substring(1);
+        } else if (remText.startsWith("\n")) {
+          remText = remText.substring(1);
+        }
+
         let remSegments = remainingSegments.slice(splitSegIndex + 1);
         if (remText.length > 0) {
           remSegments = [{ text: remText, isLarge: splitSeg.isLarge }, ...remSegments];
         }
         remainingSegments = remSegments;
       } else {
-        remainingSegments = [];
+        remainingSegments = []; // consumed everything safely
       }
 
-      if (currentSegments.length > 0) {
-        currentPageBlocks.push({ 
-            ...block, 
-            segments: currentSegments,
-            marginMarker: isFirstChunk ? block.marginMarker : undefined
+      if (currentSegments.length > 0 || (isFirstChunk && block.marginMarker)) {
+        currentPageBlocks.push({
+          ...block,
+          segments: currentSegments,
+          marginMarker: isFirstChunk ? block.marginMarker : undefined
         });
+        currentHeightUsed += FIXED_LINE_HEIGHT;
       }
 
-      pages.push({ blocks: currentPageBlocks, isEmpty: false });
-      currentPageBlocks = [];
-      currentHeightUsed = paddingTop;
       isFirstChunk = false;
     }
   }

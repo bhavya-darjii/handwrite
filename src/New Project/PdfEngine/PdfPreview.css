@@ -53,8 +53,6 @@
   z-index: 2;
   padding-top: 73px; 
   padding-bottom: 0px !important; /* Height is completely governed by JS writableLimit */
-  padding-left: 84px !important;
-  padding-right: 0px !important; /* Set to 0 to match PDF generator exactly */
   
   font-family: "Caveat", cursive;
   font-size: 1.50rem;
@@ -67,7 +65,6 @@
   overflow-wrap: break-word;
   word-break: break-word;
   width: 100%;
-  word-spacing: 5px !important; /* Forced to 5px to match the PDF export perfectly */
 }
 
 .handwrite-report-btn {
