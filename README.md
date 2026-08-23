@@ -1,4 +1,4 @@
-# ✍️ Handwrite
+# Handwrite
 
 Handwrite is a web application that transforms digital text into realistic handwriting. Built with React, TypeScript, and Vite, it allows users to type or paste text and export it as handwritten documents (PDF or images). 
 
