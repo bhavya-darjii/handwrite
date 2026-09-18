@@ -1,35 +1,61 @@
 # Handwrite
 
-Handwrite is a web application that transforms digital text into realistic handwriting. Built with React, TypeScript, and Vite, it allows users to type or paste text and export it as handwritten documents (PDF or images). 
+<div align="center">
 
-## 🌟 Features
+**Digital Handwriting Synthesis & Document Generation Engine**
 
-- **Text to Handwriting**: Convert typed text into a natural-looking handwriting font (uses Google Fonts' Caveat and others).
-- **Export Options**: Download your creations as PDF documents using `jspdf` and `html2canvas` or export to Microsoft Word (`docx`).
-- **User Authentication**: Secure signup and login powered by Firebase Authentication.
-- **User Dashboard**: Manage your projects and view your usage statistics.
-- **Admin Dashboard**: Centralized dashboard for administration and overview.
-- **Payments Integration**: Premium features gated by a payment wall using Razorpay.
-- **Beautiful UI**: Fluid animations powered by Framer Motion and WebGL effects via OGL.
+[![Private & Proprietary](https://img.shields.io/badge/Status-Private%20%26%20Proprietary-red?style=for-the-badge)](LICENSE)
+[![React](https://img.shields.io/badge/React-18.0-61dafb?style=for-the-badge&logo=react&logoColor=black)](https://react.dev)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178c6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org)
+[![Vite](https://img.shields.io/badge/Vite-Build_Tool-646cff?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev)
+[![Firebase](https://img.shields.io/badge/Firebase-Auth%20%26%20Backend-FFCA28?style=for-the-badge&logo=firebase&logoColor=black)](https://firebase.google.com)
 
-## 🛠️ Tech Stack
+</div>
 
-- **Frontend Framework**: React 18
-- **Language**: TypeScript
-- **Build Tool**: Vite
-- **Routing**: React Router DOM
-- **Authentication**: Firebase
-- **Payments**: Razorpay
-- **Animations**: Framer Motion, OGL
-- **PDF Generation**: jsPDF, html2canvas, docx
-- **Charts**: Recharts
+---
 
-## 🚀 Getting Started
+## Overview
+
+**Handwrite** is a digital productivity application engineered to convert standard digital typography into natural, realistic handwritten documents. By bridging customizable handwriting typography engines with client-side document rendering, users can draft text, adjust styling parameters, and export print-ready manuscripts, assignments, or legal paperwork directly to PDF or Microsoft Word formats.
+
+The application incorporates complete user account management, project state persistence via Firebase, tiered subscription gating via Razorpay, and hardware-accelerated animations using WebGL and Framer Motion.
+
+---
+
+## Features
+
+- **Text to Handwriting Synthesis**: Convert typed text and long-form documents into organic handwriting styles with configurable letter spacing, line height, and page layouts.
+- **Multi-Format Document Export**: High-fidelity client-side document rendering to PDF via jsPDF and html2canvas, along with structured Word (.docx) document compilation.
+- **User Authentication**: Account onboarding, credential storage, and session lifecycle secured by Firebase Authentication.
+- **Interactive User Dashboard**: Centralized management interface for personal draft history, exported projects, and account metrics.
+- **Administrative Command Center**: Operational overview interface for user account auditing and platform statistics.
+- **Payment & Subscription Gateway**: Integrated Razorpay payment wall protecting premium handwriting styles and bulk export pipelines.
+- **Interactive Visual Aesthetics**: Fluid interface transitions with Framer Motion and GPU-accelerated background shaders powered by OGL.
+
+---
+
+## Tech Stack
+
+| Layer | Technologies |
+|---|---|
+| Frontend | React 18, TypeScript, Vite |
+| Routing | React Router DOM |
+| State & Auth | Firebase Authentication & Cloud Services |
+| Document Rendering | jsPDF, html2canvas, docx, file-saver |
+| Animations & Shaders | Framer Motion, Motion, OGL (WebGL) |
+| Payments | Razorpay API |
+| Analytics & Visualization | Recharts |
+
+---
+
+## Getting Started
 
 ### Prerequisites
 
-- Node.js (v18 or higher recommended)
-- npm or yarn
+- Node.js 18.x or higher
+- npm or yarn package manager
+- Firebase project credentials
+- Razorpay API keys (for payment workflows)
 
 ### Installation
 
@@ -44,47 +70,75 @@ Handwrite is a web application that transforms digital text into realistic handw
    npm install
    ```
 
-3. **Environment Variables:**
-   Create a `.env` file in the root directory (never commit this file) and configure your keys:
-   ```env
-   RAZORPAY_KEY_ID=your_razorpay_key_id
-   RAZORPAY_KEY_SECRET=your_razorpay_key_secret
-   FIREBASE_SERVICE_ACCOUNT_KEY={"type":"service_account",...}
-   ```
+### Environment Variables
 
-4. **Start the development server:**
-   ```bash
-   npm run dev
-   ```
+Create a `.env` file in the root directory:
 
-5. **Build for production:**
-   ```bash
-   npm run build
-   ```
+```env
+# Razorpay Credentials
+RAZORPAY_KEY_ID=your_razorpay_key_id
+RAZORPAY_KEY_SECRET=your_razorpay_key_secret
 
-## 📂 Project Structure
-
-```
-handwrite/
-├── public/                 # Static assets
-├── src/
-│   ├── AdminDashboard/     # Admin facing dashboard components
-│   ├── Dashboard/          # User facing dashboard components
-│   ├── Legal Pages/        # Privacy Policy, Terms of Use, etc.
-│   ├── New Project/        # Core editor and PDF generation engine
-│   ├── Onboarding/         # Login and Signup components
-│   ├── Payment Wall/       # Razorpay integration and checkout
-│   ├── App.tsx             # Main application router
-│   ├── firebase.ts         # Firebase configuration and initialization
-│   └── main.tsx            # React application entry point
-├── package.json            # Project dependencies and scripts
-└── vite.config.ts          # Vite configuration
+# Firebase Configuration
+VITE_FIREBASE_API_KEY=your_api_key
+VITE_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=your_project_id
+VITE_FIREBASE_STORAGE_BUCKET=your_project.firebasestorage.app
+VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+VITE_FIREBASE_APP_ID=your_app_id
 ```
 
-## 📜 License
+### Running the Application
 
-This project is licensed under the MIT License.
+```bash
+# Start the local development server
+npm run dev
+
+# Build for production deployment
+npm run build
+```
+
+The application will be accessible at `http://localhost:5173`.
 
 ---
 
-<p align="center">Made with ❤️ by <a href="https://bhavya-darji.vercel.app/" target="_blank" rel="noopener noreferrer"><strong>Bhavya Darji</strong></a></p>
+## Project Structure
+
+```
+handwrite/
+├── public/                 # Static public assets and fonts
+├── src/
+│   ├── AdminDashboard/     # Administrative control views
+│   ├── Dashboard/          # User project workspace & history
+│   ├── Legal Pages/        # Terms of Service, Privacy Policy, and Compliance
+│   ├── New Project/        # Handwriting synthesis canvas & export pipeline
+│   ├── Onboarding/         # Authentication and registration views
+│   ├── Payment Wall/       # Razorpay checkout and membership handling
+│   ├── App.tsx             # Core application routing
+│   ├── firebase.ts         # Firebase SDK configuration
+│   └── main.tsx            # Application bootstrapping
+├── package.json            # Dependencies and scripts
+└── vite.config.ts          # Vite build parameters
+```
+
+---
+
+## License
+
+**Copyright © 2026 Bhavya Darji. All Rights Reserved.**
+
+This project and its underlying source code are **confidential, private, and proprietary**. Unauthorized copying, modification, distribution, public display, or commercial use of this software, via any medium, is strictly prohibited without explicit prior written authorization from the copyright holder.
+
+---
+
+## Author & Contact
+
+**Bhavya Darji**  
+- **Portfolio:** [bhavya-darji.vercel.app](https://bhavya-darji.vercel.app/)  
+- **GitHub:** [@bhavya-darjii](https://github.com/bhavya-darjii)  
+- **LinkedIn:** [Bhavya Darji](https://www.linkedin.com/in/bhavya-darji-181573242/)  
+- **Email:** [bhavyadarji462@gmail.com](mailto:bhavyadarji462@gmail.com)
+
+---
+
+<p align="center">Made with ❤️ by <a href="https://bhavya-darji.vercel.app/" target="_blank" rel="noopener noreferrer"><strong>Bhavya Darji</strong></a></p>\n
